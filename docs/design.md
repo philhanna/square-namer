@@ -395,36 +395,49 @@ hide the overlay, they don't affect session data.
   `0m 42s · 12 right · 3 wrong · struck out`. If there were any
   misses, a second line lists each one via `describeMiss()` — e.g.
   `h6 (typed g5), b3 (timed out), e4 (typed d4)`.
-- **Summary stats** (`#summaryStats`), three lines between the header
-  and the table, computed from the same per-square `rows` used for the
-  table (after it's sorted worst-first) — no separate pass over
-  `session.attempts`:
-  - `Average time for all squares`: the mean of `row.avgMs` **across
-    distinct squares** (`rows.reduce(...) / rows.length`), not a
-    grand mean weighted by how many times each square happened to
-    reappear. A square answered once and a square answered five times
-    count equally toward this average.
-  - `Most difficult`: the first 3 entries of `rows` (already sorted
-    worst-first) — the 3 squares with the highest `avgMs`.
-  - `Least difficult`: the first 3 entries of a separate ascending
-    copy (`[...rows].sort((a, b) => a.avgMs - b.avgMs)`) — the 3
-    squares with the lowest `avgMs`. A fresh sorted copy rather than
-    `rows.slice(-3).reverse()`, so it isn't silently dependent on
-    `rows`'s sort order staying what it currently is.
-  - Both lists are rendered via `formatSquareList(rows)` as
-    `"square (avgMs), square (avgMs), ..."`. With fewer than 6
-    distinct squares in the session, the two lists can and will
-    overlap (e.g. a square appearing in both "most" and "least"
-    difficult with only 5 total) — not deduplicated, since with a
-    normal-length session this essentially never happens and isn't
-    worth the complexity.
-  - If no squares were answered correctly (`rows.length === 0`,
-    possible on an immediate 3-strikes-and-out), `#summaryStats` is
-    left empty rather than showing "Average time: NaN" or empty
-    most/least-difficult lists.
+- **Summary stats** (`#summaryStats`), a tabular label/value block
+  between the header and the table — a CSS grid
+  (`grid-template-columns: max-content 1fr`), one `<div class="statLabel">`
+  + `<div class="statValue">` pair per row via a small `statRow(label,
+  value)` helper, so every value starts at the same x position
+  regardless of label length:
+  - **Accuracy** (always shown, first row): `attempts.length /
+    (attempts.length + misses.length)`, rounded to a whole percent —
+    e.g. `63%`. Shows `—` instead of `NaN%` if literally nothing was
+    answered or missed (Stop clicked the instant a session starts, before
+    the first square is even attempted). This is the one place in the
+    UI that shows an accuracy percentage — the live right/wrong counts
+    during play (see "Live right/wrong counts" above) remain raw counts
+    by design; a post-session summary stat is a different context than
+    a live in-the-moment readout, so showing a computed rate here
+    doesn't conflict with that.
+  - The remaining three rows only appear if `rows.length` (see the
+    table below) is non-zero — no correct answers means nothing to
+    compute an average/most/least-difficult from:
+    - **Average time**: the mean of `row.avgMs` **across distinct
+      squares** (`rows.reduce(...) / rows.length`), not a grand mean
+      weighted by how many times each square happened to reappear. A
+      square answered once and a square answered five times count
+      equally toward this average.
+    - **Most difficult**: the first 3 entries of `rows` (already
+      sorted worst-first) — the 3 squares with the highest `avgMs`.
+    - **Least difficult**: the first 3 entries of a separate ascending
+      copy (`[...rows].sort((a, b) => a.avgMs - b.avgMs)`) — the 3
+      squares with the lowest `avgMs`. A fresh sorted copy rather than
+      `rows.slice(-3).reverse()`, so it isn't silently dependent on
+      `rows`'s sort order staying what it currently is.
+    - Both lists are rendered via `formatSquareList(rows)` as a plain
+      comma-separated list of square names — no per-square timing in
+      this line, since the table immediately below already shows each
+      square's own avg time. With fewer than 6 distinct squares in the
+      session, the two lists can and will overlap (e.g. a square
+      appearing in both "most" and "least" difficult with only 5
+      total) — not deduplicated, since with a normal-length session
+      this essentially never happens and isn't worth the complexity.
 - Table columns: **Square**, **Times shown**, **Avg time**,
   **Slowest** — computed from `session.attempts` only (correct,
-  within-time-limit answers). No Accuracy column, no miss rows.
+  within-time-limit answers). No Accuracy column here (that's the
+  `#summaryStats` row above, not a per-square breakdown), no miss rows.
 - Rows sorted worst-first by `avgMs` (slowest average first).
 - Row highlighting (`.slow` class) for squares whose `avgMs` exceeds
   `SLOW_THRESHOLD_MS`.
@@ -436,9 +449,10 @@ hide the overlay, they don't affect session data.
 Session: 0m 42s · 12 right · 3 wrong · struck out
 h6 (typed g5), b3 (timed out), e4 (typed d4)
 
-Average time for all squares: 0.9s
-Most difficult: f7 (1.4s), b2 (0.9s), a1 (0.5s)
-Least difficult: a1 (0.5s), b2 (0.9s), f7 (1.4s)
+Accuracy         80%
+Average time     0.9s
+Most difficult   f7, b2, a1
+Least difficult  a1, b2, f7
 
  Square │ Times shown │ Avg time │ Slowest
 ────────┼─────────────┼──────────┼─────────
@@ -544,8 +558,11 @@ Least difficult: a1 (0.5s), b2 (0.9s), f7 (1.4s)
   on whether `guess` is set; `renderSummary()` joins these for the
   header's second line.
 - `formatSquareList(rows)` renders an array of per-square row objects
-  as `"<square> (<avgMs>), ..."` via `formatMs()`; used for both the
-  "Most difficult" and "Least difficult" lines in `#summaryStats`.
+  as a comma-separated list of just `row.square`, no timing; used for
+  both the "Most difficult" and "Least difficult" rows in
+  `#summaryStats`. `statRow(label, value)` wraps a label/value pair as
+  the `.statLabel`/`.statValue` div pair the CSS grid expects, used for
+  every row in `#summaryStats` including Accuracy.
 - The Close button and clicks on the overlay backdrop (but not on the
   card itself — checked via `e.target === summaryOverlayEl`) both just
   set `summaryOverlayEl.hidden = true`.
@@ -619,9 +636,15 @@ Least difficult: a1 (0.5s), b2 (0.9s), f7 (1.4s)
   real square name at all doesn't count as a strike and doesn't touch
   the time-limit clock — only a guess that names an actual (wrong)
   square, or the clock simply running out, does.
-- **Right/wrong shown as raw counts, not a percentage**: mirrors the
-  "no accuracy percentage" stance from earlier iterations — the counts
-  are informative on their own without being reduced to a rate.
+- **Live right/wrong counts stay raw; the post-session summary gets an
+  accuracy percentage**: during play, `#statRight`/`#statWrong` remain
+  unreduced counts — informative on their own without being turned
+  into a rate while still updating every answer. Once the session is
+  over, though, `#summaryStats` does show a computed `Accuracy` row —
+  a look-back stat where a percentage is the more useful framing,
+  unlike a live counter you're watching tick up in real time. This
+  revises the earlier "no accuracy percentage anywhere" stance, scoped
+  specifically to this one summary-only context.
 - **Summary is a pop-up, not inline**: it lives in a fixed overlay
   separate from the board, appears 500ms after the session actually
   ends (not instantly), and is closed explicitly (Close button or
@@ -683,3 +706,10 @@ Least difficult: a1 (0.5s), b2 (0.9s), f7 (1.4s)
   hiding labels just empties their content. Keeps the board's own
   pixel size stable regardless of the toggle, so nothing else on the
   page needs to reflow when it's flipped.
+- **`#summaryStats` is a CSS grid of label/value pairs, not a list of
+  full sentences**: earlier iterations used sentence-style lines like
+  "Average time for all squares: 0.9s". A `max-content 1fr` grid keeps
+  every value column-aligned to the same x position regardless of
+  label length, reading closer to the table right below it than to
+  free-form prose — appropriate now that there are 4 rows instead of 1
+  or 2.

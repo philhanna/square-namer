@@ -345,14 +345,15 @@ button:disabled {
   margin-bottom: 12px;
 }
 #summaryStats {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--muted);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
   font-size: 0.82rem;
   margin-bottom: 14px;
 }
-#summaryStats strong { color: var(--text); }
+#summaryStats .statLabel { color: var(--muted); }
+#summaryStats .statValue { color: var(--text); font-weight: 600; }
 #summaryTable {
   width: 100%;
   border-collapse: collapse;

@@ -8,10 +8,12 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 ## [Unreleased]
 
 ### Added
-- Three summary-statistics lines in the session summary popup, between
-  the header and the per-square table: average time across all squares
-  answered correctly, the 3 most difficult squares, and the 3 least
-  difficult squares (each with its average time).
+- A tabular summary-statistics block in the session summary popup,
+  between the header and the per-square table: accuracy %, average time
+  across all squares answered correctly, the 3 most difficult squares,
+  and the 3 least difficult squares. Values are column-aligned rather
+  than run into sentences, and the difficulty lists show just the
+  square names (their average time is already in the table below).
 
 ## [1.2.0] - 2026-08-12
 

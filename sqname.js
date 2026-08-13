@@ -247,7 +247,11 @@ function formatMs(ms) {
 }
 
 function formatSquareList(rows) {
-  return rows.map(r => `${r.square} (${formatMs(r.avgMs)})`).join(', ');
+  return rows.map(r => r.square).join(', ');
+}
+
+function statRow(label, value) {
+  return `<div class="statLabel">${label}</div><div class="statValue">${value}</div>`;
 }
 
 function describeMiss(miss) {
@@ -287,20 +291,25 @@ function renderSummary() {
 
   rows.sort((a, b) => b.avgMs - a.avgMs);
 
+  const totalAnswered = attempts.length + misses.length;
+  const accuracyText = totalAnswered
+    ? `${Math.round((attempts.length / totalAnswered) * 100)}%`
+    : '—';
+
+  let statsHtml = statRow('Accuracy', accuracyText);
+
   if (rows.length) {
     const overallAvgMs = rows.reduce((sum, r) => sum + r.avgMs, 0) / rows.length;
     const bySpeed = [...rows].sort((a, b) => a.avgMs - b.avgMs);
     const mostDifficult = rows.slice(0, 3);
     const leastDifficult = bySpeed.slice(0, 3);
 
-    summaryStatsEl.innerHTML = `
-      <div>Average time for all squares: <strong>${formatMs(overallAvgMs)}</strong></div>
-      <div>Most difficult: ${formatSquareList(mostDifficult)}</div>
-      <div>Least difficult: ${formatSquareList(leastDifficult)}</div>
-    `;
-  } else {
-    summaryStatsEl.innerHTML = '';
+    statsHtml += statRow('Average time', formatMs(overallAvgMs));
+    statsHtml += statRow('Most difficult', formatSquareList(mostDifficult));
+    statsHtml += statRow('Least difficult', formatSquareList(leastDifficult));
   }
+
+  summaryStatsEl.innerHTML = statsHtml;
 
   summaryBodyEl.innerHTML = '';
   rows.forEach(row => {
