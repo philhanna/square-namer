@@ -312,6 +312,17 @@ click) — but narrower (`min(92vw, 280px)` vs. 420px) since it holds far
 less content, and it's opened by `#settingsBtn` rather than appearing
 automatically. It contains, stacked vertically for compactness:
 
+- **Board orientation** (first in the panel), under a small "BOARD
+  ORIENTATION" caption, set by the same two mutually exclusive radio
+  buttons (`#orientationWhite` / `#orientationBlack`) as before — not a
+  single "Flip board" toggle button. The two options sit in one
+  horizontal row (`.orientationOptions`, a `flex-direction: row` wrapper
+  around just the two `<label>`s, siblings of the caption rather than
+  stacked under it) rather than one per line — there are only two
+  mutually exclusive choices, so a row reads faster than a column and
+  costs less vertical space. Selecting one directly sets which color
+  occupies the bottom row; the popup doesn't need to be closed for this
+  to take effect, and doesn't auto-close when you do it.
 - The **time limit** input (`#timeLimitInput`, milliseconds, default
   1000), labeled "Per-square time limit (ms)" (`#timeLimitLabel`). Same
   element, same behavior as before the popup existed — still editable
@@ -319,12 +330,6 @@ automatically. It contains, stacked vertically for compactness:
   just relocated. `#timeLimitLabel`/`#timeLimitInput` are restyled
   (`#settingsPanel #timeLimitLabel { flex-direction: column; }`, full-
   width input) for a vertical popup instead of the old inline row.
-- **Board orientation**, under a small "BOARD ORIENTATION" caption,
-  set by the same two mutually exclusive radio buttons
-  (`#orientationWhite` / `#orientationBlack`) as before — not a single
-  "Flip board" toggle button. Selecting one directly sets which color
-  occupies the bottom row; the popup doesn't need to be closed for this
-  to take effect, and doesn't auto-close when you do it.
 - A **"Show rank/file labels"** checkbox (`#showCoordinates`, checked
   by default), toggling the coordinate border described above. Same
   immediate-effect, no-close-needed behavior as the orientation radios.

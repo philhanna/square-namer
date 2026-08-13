@@ -297,6 +297,11 @@ button:disabled {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+#settingsPanel .orientationOptions {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
 #settingsPanel #orientation label {
   display: flex;
   align-items: center;

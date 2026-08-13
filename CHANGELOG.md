@@ -12,6 +12,12 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   default), letting the board's coordinate border be turned off. Applies
   instantly and doesn't affect a running session's highlighted square.
 
+### Changed
+- Reordered the Settings popup: Board orientation now comes before the
+  per-square time limit.
+- The White/Black orientation options are now a single horizontal row
+  instead of two stacked rows.
+
 ## [1.1.0] - 2026-08-12
 
 ### Added

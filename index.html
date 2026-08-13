@@ -43,15 +43,17 @@
 <div id="settingsOverlay" hidden>
   <div id="settingsPanel">
     <h2>Settings</h2>
+    <div id="orientation">
+      <span class="orientationTitle">Board orientation</span>
+      <div class="orientationOptions">
+        <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
+        <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
+      </div>
+    </div>
     <label id="timeLimitLabel">
       Per-square time limit (ms)
       <input type="text" inputmode="numeric" pattern="[0-9]*" id="timeLimitInput" value="5000" />
     </label>
-    <div id="orientation">
-      <span class="orientationTitle">Board orientation</span>
-      <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
-      <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
-    </div>
     <label id="coordLabelsToggle">
       <input type="checkbox" id="showCoordinates" checked>
       Show rank/file labels
