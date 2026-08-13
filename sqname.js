@@ -276,7 +276,7 @@ function startSession() {
   pauseBtn.disabled = false;
 
   pickTarget();
-  answerInput.focus();
+  if (!voiceActive) answerInput.focus();
   startTimer();
 }
 
@@ -304,7 +304,7 @@ function resumeSession() {
   resumeAllTimeouts();
   startTimer();
   answerInput.disabled = false;
-  answerInput.focus();
+  if (!voiceActive) answerInput.focus();
   pauseBtn.classList.remove('paused');
   pauseBtn.innerHTML = PAUSE_ICON_SVG;
   pauseBtn.setAttribute('aria-label', 'Pause');
@@ -336,7 +336,7 @@ function endSession() {
     el.classList.remove('target', 'flash-correct', 'flash-wrong');
   });
   answerInput.value = '';
-  answerInput.focus();
+  if (!voiceActive) answerInput.focus();
 
   renderSummary();
   summaryPopupTimeout = setTimeout(() => {
@@ -511,7 +511,7 @@ function setOrientation(newFlipped) {
   flipped = newFlipped;
   buildBoard();
   if (target) highlightTarget();
-  answerInput.focus();
+  if (!voiceActive) answerInput.focus();
 }
 
 orientationWhite.addEventListener('change', () => setOrientation(false));
@@ -662,6 +662,7 @@ if (voiceSupported) {
       if (!recognizer) recognizer = createRecognizer();
       recognizer.start();
       voiceBtn.classList.add('listening');
+      answerInput.blur();
     } else {
       recognizer.stop();
       voiceBtn.classList.remove('listening');

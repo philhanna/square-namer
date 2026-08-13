@@ -283,6 +283,18 @@ pauses, or resumes.
 - `#voiceBtn` click handler toggles `voiceActive`, lazily calls
   `createRecognizer()` on first use, and calls `recognizer.start()` /
   `recognizer.stop()` to match.
+- **Keyboard suppression while voice is active**: `startSession()`,
+  `resumeSession()`, `endSession()`, and `setOrientation()` all
+  normally call `answerInput.focus()` so a keyboard/mouse player can
+  type the next guess immediately. Each of those calls is now guarded
+  with `if (!voiceActive)`, since on Android, focusing a text input
+  raises the on-screen keyboard regardless of whether a user gesture
+  is in the call stack (unlike iOS Safari, which requires one) —
+  without the guard, every voice-triggered "start"/"stop"/"resume" or
+  an orientation flip mid-session would reopen the very keyboard
+  voice input exists to avoid. The `#voiceBtn` click handler also
+  calls `answerInput.blur()` when turning voice on, to dismiss the
+  keyboard immediately if it was already open from prior typing.
 
 ## Browser support
 
