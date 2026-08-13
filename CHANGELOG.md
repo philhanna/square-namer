@@ -7,6 +7,8 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [1.0.0-RC1] - 2026-08-12
+
 ### Added
 - A configurable per-square time limit (`#timeLimitInput`, default 1000ms),
   shown in the same row as the orientation radios. Answering after the
