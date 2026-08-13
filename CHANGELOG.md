@@ -7,6 +7,8 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-12
+
 ### Changed
 - A wrong answer now ends the session automatically, same as pressing Stop —
   practice sessions are pass/fail per square instead of continuing past a
