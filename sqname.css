@@ -344,6 +344,15 @@ button:disabled {
   font-size: 0.85rem;
   margin-bottom: 12px;
 }
+#summaryStats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+}
+#summaryStats strong { color: var(--text); }
 #summaryTable {
   width: 100%;
   border-collapse: collapse;

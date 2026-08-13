@@ -23,6 +23,7 @@ const sessionBtn = document.getElementById('sessionBtn');
 const sessionTimerEl = document.getElementById('sessionTimer');
 const summaryOverlayEl = document.getElementById('summaryOverlay');
 const summaryHeaderEl = document.getElementById('summaryHeader');
+const summaryStatsEl = document.getElementById('summaryStats');
 const summaryBodyEl = document.getElementById('summaryBody');
 const summaryCloseBtn = document.getElementById('summaryCloseBtn');
 const countdownOverlayEl = document.getElementById('countdownOverlay');
@@ -245,6 +246,10 @@ function formatMs(ms) {
   return (ms / 1000).toFixed(1) + 's';
 }
 
+function formatSquareList(rows) {
+  return rows.map(r => `${r.square} (${formatMs(r.avgMs)})`).join(', ');
+}
+
 function describeMiss(miss) {
   return miss.guess ? `${miss.square} (typed ${miss.guess})` : `${miss.square} (timed out)`;
 }
@@ -281,6 +286,21 @@ function renderSummary() {
   });
 
   rows.sort((a, b) => b.avgMs - a.avgMs);
+
+  if (rows.length) {
+    const overallAvgMs = rows.reduce((sum, r) => sum + r.avgMs, 0) / rows.length;
+    const bySpeed = [...rows].sort((a, b) => a.avgMs - b.avgMs);
+    const mostDifficult = rows.slice(0, 3);
+    const leastDifficult = bySpeed.slice(0, 3);
+
+    summaryStatsEl.innerHTML = `
+      <div>Average time for all squares: <strong>${formatMs(overallAvgMs)}</strong></div>
+      <div>Most difficult: ${formatSquareList(mostDifficult)}</div>
+      <div>Least difficult: ${formatSquareList(leastDifficult)}</div>
+    `;
+  } else {
+    summaryStatsEl.innerHTML = '';
+  }
 
   summaryBodyEl.innerHTML = '';
   rows.forEach(row => {

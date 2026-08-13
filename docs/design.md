@@ -389,12 +389,39 @@ to register before the view is covered. The card is dismissed by its
 **Close** button or by clicking the backdrop outside it; both just
 hide the overlay, they don't affect session data.
 
-- Header line: total duration, right count, wrong count, and how it
-  ended (`struck out` once 3 misses accumulate, otherwise
-  `stopped manually`) — e.g.
+- Header line (`#summaryHeader`): total duration, right count, wrong
+  count, and how it ended (`struck out` once 3 misses accumulate,
+  otherwise `stopped manually`) — e.g.
   `0m 42s · 12 right · 3 wrong · struck out`. If there were any
   misses, a second line lists each one via `describeMiss()` — e.g.
   `h6 (typed g5), b3 (timed out), e4 (typed d4)`.
+- **Summary stats** (`#summaryStats`), three lines between the header
+  and the table, computed from the same per-square `rows` used for the
+  table (after it's sorted worst-first) — no separate pass over
+  `session.attempts`:
+  - `Average time for all squares`: the mean of `row.avgMs` **across
+    distinct squares** (`rows.reduce(...) / rows.length`), not a
+    grand mean weighted by how many times each square happened to
+    reappear. A square answered once and a square answered five times
+    count equally toward this average.
+  - `Most difficult`: the first 3 entries of `rows` (already sorted
+    worst-first) — the 3 squares with the highest `avgMs`.
+  - `Least difficult`: the first 3 entries of a separate ascending
+    copy (`[...rows].sort((a, b) => a.avgMs - b.avgMs)`) — the 3
+    squares with the lowest `avgMs`. A fresh sorted copy rather than
+    `rows.slice(-3).reverse()`, so it isn't silently dependent on
+    `rows`'s sort order staying what it currently is.
+  - Both lists are rendered via `formatSquareList(rows)` as
+    `"square (avgMs), square (avgMs), ..."`. With fewer than 6
+    distinct squares in the session, the two lists can and will
+    overlap (e.g. a square appearing in both "most" and "least"
+    difficult with only 5 total) — not deduplicated, since with a
+    normal-length session this essentially never happens and isn't
+    worth the complexity.
+  - If no squares were answered correctly (`rows.length === 0`,
+    possible on an immediate 3-strikes-and-out), `#summaryStats` is
+    left empty rather than showing "Average time: NaN" or empty
+    most/least-difficult lists.
 - Table columns: **Square**, **Times shown**, **Avg time**,
   **Slowest** — computed from `session.attempts` only (correct,
   within-time-limit answers). No Accuracy column, no miss rows.
@@ -408,6 +435,10 @@ hide the overlay, they don't affect session data.
 ```
 Session: 0m 42s · 12 right · 3 wrong · struck out
 h6 (typed g5), b3 (timed out), e4 (typed d4)
+
+Average time for all squares: 0.9s
+Most difficult: f7 (1.4s), b2 (0.9s), a1 (0.5s)
+Least difficult: a1 (0.5s), b2 (0.9s), f7 (1.4s)
 
  Square │ Times shown │ Avg time │ Slowest
 ────────┼─────────────┼──────────┼─────────
@@ -512,6 +543,9 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   `"<square> (typed <guess>)"` or `"<square> (timed out)"` depending
   on whether `guess` is set; `renderSummary()` joins these for the
   header's second line.
+- `formatSquareList(rows)` renders an array of per-square row objects
+  as `"<square> (<avgMs>), ..."` via `formatMs()`; used for both the
+  "Most difficult" and "Least difficult" lines in `#summaryStats`.
 - The Close button and clicks on the overlay backdrop (but not on the
   card itself — checked via `e.target === summaryOverlayEl`) both just
   set `summaryOverlayEl.hidden = true`.
