@@ -7,6 +7,10 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-12
+
+First release.
+
 ### Added
 - A big "3 … 2 … 1" pre-session countdown (Puzzle Rush-style), centered
   over the board. Pressing Start no longer begins the session
