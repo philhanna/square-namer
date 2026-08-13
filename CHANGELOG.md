@@ -7,6 +7,12 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Added
+- A big "3 … 2 … 1" pre-session countdown (Puzzle Rush-style), centered
+  over the board. Pressing Start no longer begins the session
+  immediately — the session (and every timer: per-square time limit,
+  session clock) only starts once the countdown finishes.
+
 ### Changed
 - Moved the Start/Stop button and the session timer down into the bottom
   row alongside the answer input, instead of the settings row above the

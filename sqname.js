@@ -3,6 +3,8 @@ const SQUARE_NAME_RE = /^[a-h][1-8]$/;
 const SUMMARY_POPUP_DELAY_MS = 500;
 const DEFAULT_TIME_LIMIT_MS = 1000;
 const STRIKE_LIMIT = 3;
+const COUNTDOWN_START = 3;
+const COUNTDOWN_STEP_MS = 1000;
 
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
@@ -22,6 +24,7 @@ const summaryOverlayEl = document.getElementById('summaryOverlay');
 const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryBodyEl = document.getElementById('summaryBody');
 const summaryCloseBtn = document.getElementById('summaryCloseBtn');
+const countdownOverlayEl = document.getElementById('countdownOverlay');
 
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
@@ -122,21 +125,42 @@ function flashResult(isCorrect) {
   }
 }
 
-function startSession() {
+function beginCountdown() {
   timeLimitMs = parseInt(timeLimitInput.value, 10) || DEFAULT_TIME_LIMIT_MS;
   timeLimitInput.disabled = true;
+  sessionBtn.disabled = true;
 
-  session = { startedAt: Date.now(), endedAt: null, attempts: [], misses: [] };
   feedbackEl.textContent = '';
   feedbackEl.className = '';
-  updateLiveCounts();
-
   clearTimeout(summaryPopupTimeout);
   summaryOverlayEl.hidden = true;
+
+  buildBoard();
+  runCountdownStep(COUNTDOWN_START);
+}
+
+function runCountdownStep(n) {
+  countdownOverlayEl.innerHTML = `<span class="tick">${n}</span>`;
+  countdownOverlayEl.hidden = false;
+
+  setTimeout(() => {
+    if (n > 1) {
+      runCountdownStep(n - 1);
+    } else {
+      countdownOverlayEl.hidden = true;
+      sessionBtn.disabled = false;
+      startSession();
+    }
+  }, COUNTDOWN_STEP_MS);
+}
+
+function startSession() {
+  session = { startedAt: Date.now(), endedAt: null, attempts: [], misses: [] };
+  updateLiveCounts();
+
   answerInput.disabled = false;
   sessionBtn.textContent = 'Stop';
 
-  buildBoard();
   pickTarget();
   answerInput.focus();
   startTimer();
@@ -280,7 +304,7 @@ answerForm.addEventListener('submit', (e) => {
 
 sessionBtn.addEventListener('click', () => {
   if (!session || session.endedAt) {
-    startSession();
+    beginCountdown();
   } else {
     endSession();
   }

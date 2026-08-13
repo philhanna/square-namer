@@ -48,19 +48,30 @@ consistently slow or error-prone.
 
 ## Session lifecycle
 
-A **session** is the span from pressing **Start** until it ends,
-either because the user racks up **3 misses** (strikes) or because
-they press **Stop** manually.
+A **session** is the span from when the pre-session countdown finishes
+until it ends, either because the user racks up **3 misses** (strikes)
+or because they press **Stop** manually.
 
 - **Idle** (initial state / after the session ends): board shows no
   target, answer form is disabled, a **Start** button is
   shown, and the time-limit input is editable.
-- **Running** (after Start): a square is highlighted, the answer form
-  is enabled, timing begins, and a per-square countdown for the
-  configured time limit starts. The button reads **Stop**.
-  Enter submits the guess — there is no separate Check button. The
-  time-limit input is disabled for the duration, so a session's data
-  is never measured against a limit that changed mid-session.
+- **Counting down** (after Start is pressed, before the session
+  actually begins): a big **"3 … 2 … 1"** countdown (`#countdownOverlay`,
+  Puzzle Rush-style) is shown centered over the board, one second per
+  number. `#sessionBtn` is disabled and the time-limit input is locked
+  in for the duration — clicking Start can't be done twice, and the
+  limit can't change mid-countdown. Nothing session-related exists yet:
+  no `session` object, no target square, no per-square timer, no
+  session timer. The board is rebuilt to a plain, no-target state (in
+  the current orientation) so the countdown has a clean board to sit
+  over.
+- **Running** (once the countdown finishes): a square is highlighted,
+  the answer form is enabled, timing begins, and a per-square countdown
+  for the configured time limit starts — this is the first moment any
+  timer actually starts. The button reads **Stop**. Enter submits the
+  guess — there is no separate Check button. The time-limit input stays
+  disabled for the duration, so a session's data is never measured
+  against a limit that changed mid-session.
 - **A miss** is either a wrong guess *or* the per-square time limit
   expiring with no valid guess submitted (a "timeout"). Either way:
   the square still gets the existing red flash, and once that flash's
@@ -235,6 +246,28 @@ Small centered **"White"/"Black" captions** above and below the board
 changes, so it's always clear which side is which regardless of which
 radio (in the row above) is currently selected.
 
+### Pre-session countdown
+
+`#board` is wrapped in `#boardStage`, a `position: relative` container
+sized to match the board exactly (`min(92vw, 420px)` square, same as
+before — the sizing moved from `#board` to `#boardStage` so `#board`
+itself can just be `width: 100%; height: 100%` inside it). This gives
+the countdown a positioning context that covers precisely the board,
+not the whole page.
+
+`#countdownOverlay` is an absolutely-positioned (`inset: 0`) sibling of
+`#board` inside `#boardStage`: a big (`9rem`), bold, white number
+centered over a translucent dark backdrop, so it reads clearly
+regardless of the board's own colors. Each tick replaces its content
+with a fresh `<span class="tick">` element (not just new text) so the
+`countdownTick` scale/fade-in CSS animation restarts every second
+instead of only playing once.
+
+The countdown itself is 3 steps (`COUNTDOWN_START = 3`) at
+`COUNTDOWN_STEP_MS = 1000` each — "3", "2", "1", each shown for a full
+second, then hidden. There's no visible "Go" — the overlay simply
+disappears and the first target square lights up in its place.
+
 ### Slow threshold
 
 A fixed **`SLOW_THRESHOLD_MS`** constant (500ms), declared at the top
@@ -283,11 +316,11 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 ## Implementation notes (sqname.js)
 
 - `SLOW_THRESHOLD_MS`, `SQUARE_NAME_RE`, `SUMMARY_POPUP_DELAY_MS`,
-  `DEFAULT_TIME_LIMIT_MS` (1000), and `STRIKE_LIMIT` (3) are declared
-  as constants at the top of the file. Module-level `timeLimitMs`
-  (initialized to `DEFAULT_TIME_LIMIT_MS`) holds the active session's
-  configured limit; `answerTimeout` holds the pending per-square
-  timeout id.
+  `DEFAULT_TIME_LIMIT_MS` (1000), `STRIKE_LIMIT` (3), `COUNTDOWN_START`
+  (3), and `COUNTDOWN_STEP_MS` (1000) are declared as constants at the
+  top of the file. Module-level `timeLimitMs` (initialized to
+  `DEFAULT_TIME_LIMIT_MS`) holds the active session's configured
+  limit; `answerTimeout` holds the pending per-square timeout id.
 - No `checkBtn`, `resetBtn`, or `flipBtn` elements — the form has no
   submit button, there's no reset action, and orientation is set by
   the `#orientationWhite`/`#orientationBlack` radios instead of a
@@ -322,11 +355,25 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
     flashes green, and schedules `pickTarget()` after 350ms.
   - On a **wrong** guess: sets the "Wrong" feedback, then calls
     `registerMiss(target, guess, elapsedMs)`.
-- `startSession()`: reads `timeLimitMs` from `#timeLimitInput`
-  (`parseInt(...) || DEFAULT_TIME_LIMIT_MS`) and disables that input,
-  creates a fresh `session` (`attempts: []`, `misses: []`), resets the
-  live counts, enables the answer form, hides the summary overlay,
-  calls `buildBoard()` + `pickTarget()`.
+- The Start click handler now runs `beginCountdown()`, not
+  `startSession()` directly:
+  - `beginCountdown()`: reads `timeLimitMs` from `#timeLimitInput`
+    (`parseInt(...) || DEFAULT_TIME_LIMIT_MS`) and disables that
+    input, disables `#sessionBtn` (so it can't be clicked again mid-
+    countdown), clears leftover feedback/summary state from any prior
+    session, calls `buildBoard()` for a clean no-target board, then
+    starts `runCountdownStep(COUNTDOWN_START)`. Nothing here creates a
+    `session` object or touches any timer.
+  - `runCountdownStep(n)`: shows `n` in `#countdownOverlay` (as a
+    fresh `<span class="tick">` so the CSS animation replays), waits
+    `COUNTDOWN_STEP_MS`, then either recurses with `n - 1` (if
+    `n > 1`) or hides the overlay, re-enables `#sessionBtn`, and calls
+    `startSession()` — this is the only path into `startSession()`.
+  - `startSession()`: creates a fresh `session` (`attempts: []`,
+    `misses: []`), resets the live counts, enables the answer form,
+    sets the button to "Stop", and only *here* does anything
+    time-related actually start: `pickTarget()` (which arms the
+    per-square timeout) and `startTimer()` (the session clock).
 - `endSession()` (used by the Stop button, the 3rd-miss path via
   `registerMiss()`, and nowhere else): cancels any pending
   `answerTimeout`, sets `session.endedAt`, disables the form,
@@ -399,3 +446,14 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   ends (not instantly), and is closed explicitly (Close button or
   backdrop click) rather than by starting a new session — though
   starting a new session does hide it and cancel any pending pop-up.
+- **Pressing Start doesn't start the session — it starts a countdown**:
+  no `session` object, target square, or timer of any kind exists until
+  the 3-2-1 countdown finishes. This is deliberate: the time limit is
+  strict (as little as 100ms), so the player needs a predictable,
+  timer-free moment to get ready, exactly like chess.com's Puzzle Rush.
+- **Countdown length/pace is fixed**: `COUNTDOWN_START = 3` and
+  `COUNTDOWN_STEP_MS = 1000` are constants, not configurable — the
+  countdown itself isn't a difficulty knob the way the time limit is.
+- **`#sessionBtn` disabled during the countdown**: prevents a double
+  click from starting two overlapping countdowns/sessions. It's the
+  only place the button is disabled outside the countdown itself.
