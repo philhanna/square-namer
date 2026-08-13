@@ -4,6 +4,7 @@
   --highlight: #f5c518;
   --correct: #4caf50;
   --wrong: #d9534f;
+  --warn: #e0a030;
   --bg: #1c1c1e;
   --panel: #2a2a2d;
   --text: #eee;
@@ -156,6 +157,7 @@ button:disabled {
   font-weight: 600;
 }
 #feedback.correct { color: var(--correct); }
+#feedback.warn { color: var(--warn); }
 #feedback.wrong { color: var(--wrong); }
 
 #sessionSummary {

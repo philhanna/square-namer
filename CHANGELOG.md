@@ -14,6 +14,9 @@ This project does not use version numbers; entries are grouped under `[Unrelease
   flip along with the board orientation.
 - White/Black radio buttons to set board orientation directly, replacing the
   toggle-style "Flip board" button.
+- Input validation: a guess that isn't a well-formed square name (e.g. "zz",
+  "e10") shows a warning message instead of being scored as a wrong answer,
+  and doesn't advance to a new square — the user just retries.
 
 ### Changed
 - Redesigned the session model so a wrong answer always ends the session;

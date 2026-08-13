@@ -1,4 +1,5 @@
 const SLOW_THRESHOLD_MS = 500;
+const SQUARE_NAME_RE = /^[a-h][1-8]$/;
 
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
@@ -218,6 +219,13 @@ answerForm.addEventListener('submit', (e) => {
 
   const guess = answerInput.value.trim().toLowerCase();
   if (!guess) return;
+
+  if (!SQUARE_NAME_RE.test(guess)) {
+    feedbackEl.textContent = `"${guess}" isn't a square name — try again`;
+    feedbackEl.className = 'warn';
+    answerInput.value = '';
+    return;
+  }
 
   const answeredAt = Date.now();
   const elapsedMs = answeredAt - targetShownAt;
