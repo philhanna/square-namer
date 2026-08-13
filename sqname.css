@@ -216,6 +216,7 @@ h1 {
 }
 #answerInput {
   flex: 1;
+  min-width: 0;
   font-size: 1.1rem;
   padding: 10px 12px;
   border-radius: 8px;
