@@ -25,12 +25,15 @@
   <div><div class="val" id="statCount">0</div><div class="lbl">Attempts</div></div>
 </div>
 
-<div id="board"></div>
+<div id="boardWrap">
+  <div class="boardCaption" id="boardCaptionTop">Black</div>
+  <div id="board"></div>
+  <div class="boardCaption" id="boardCaptionBottom">White</div>
+</div>
 
 <div id="controls">
   <form id="answerForm">
     <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
-    <button type="submit" disabled>Check</button>
   </form>
   <div id="feedback"></div>
   <div id="toggles">

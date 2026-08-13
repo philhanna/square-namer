@@ -1,8 +1,9 @@
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
+const boardCaptionTop = document.getElementById('boardCaptionTop');
+const boardCaptionBottom = document.getElementById('boardCaptionBottom');
 const answerForm = document.getElementById('answerForm');
 const answerInput = document.getElementById('answerInput');
-const checkBtn = answerForm.querySelector('button[type="submit"]');
 const feedbackEl = document.getElementById('feedback');
 const statStreak = document.getElementById('statStreak');
 const statAcc = document.getElementById('statAcc');
@@ -33,7 +34,13 @@ function squareColor(file, rank) {
   return (fileIdx + rank) % 2 === 0 ? 'dark' : 'light';
 }
 
+function updateBoardCaptions() {
+  boardCaptionTop.textContent = flipped ? 'White' : 'Black';
+  boardCaptionBottom.textContent = flipped ? 'Black' : 'White';
+}
+
 function buildBoard() {
+  updateBoardCaptions();
   boardEl.innerHTML = '';
   // Determine row/col order based on orientation.
   // Standard (not flipped): rank 8 at top down to rank 1 at bottom, files a-h left to right.
@@ -96,7 +103,6 @@ function startSession() {
 
   sessionSummaryEl.hidden = true;
   answerInput.disabled = false;
-  checkBtn.disabled = false;
   slowThresholdInput.disabled = true;
   sessionBtn.textContent = 'Stop session';
 
@@ -112,7 +118,6 @@ function stopSession() {
   stopTimer();
 
   answerInput.disabled = true;
-  checkBtn.disabled = true;
   slowThresholdInput.disabled = false;
   sessionBtn.textContent = 'Start session';
 
