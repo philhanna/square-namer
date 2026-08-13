@@ -12,6 +12,10 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   over the board. Pressing Start no longer begins the session
   immediately — the session (and every timer: per-square time limit,
   session clock) only starts once the countdown finishes.
+- A 350ms pause on the plain board after the countdown, before the first
+  square lights up — the countdown overlay disappearing and a target
+  appearing at the same instant felt disorienting, even though the
+  per-square timer itself was already getting its full configured limit.
 
 ### Changed
 - Moved the Start/Stop button and the session timer down into the bottom

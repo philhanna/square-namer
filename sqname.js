@@ -5,6 +5,7 @@ const DEFAULT_TIME_LIMIT_MS = 1000;
 const STRIKE_LIMIT = 3;
 const COUNTDOWN_START = 3;
 const COUNTDOWN_STEP_MS = 1000;
+const POST_COUNTDOWN_DELAY_MS = 350;
 
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
@@ -148,8 +149,13 @@ function runCountdownStep(n) {
       runCountdownStep(n - 1);
     } else {
       countdownOverlayEl.hidden = true;
-      sessionBtn.disabled = false;
-      startSession();
+      // Brief pause on the plain board before the first target lights up,
+      // so the eye has a moment to settle after the overlay disappears
+      // instead of jumping straight from "1" to a highlighted square.
+      setTimeout(() => {
+        sessionBtn.disabled = false;
+        startSession();
+      }, POST_COUNTDOWN_DELAY_MS);
     }
   }, COUNTDOWN_STEP_MS);
 }

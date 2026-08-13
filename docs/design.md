@@ -265,8 +265,15 @@ instead of only playing once.
 
 The countdown itself is 3 steps (`COUNTDOWN_START = 3`) at
 `COUNTDOWN_STEP_MS = 1000` each — "3", "2", "1", each shown for a full
-second, then hidden. There's no visible "Go" — the overlay simply
-disappears and the first target square lights up in its place.
+second. After "1" is hidden, there's a further
+**`POST_COUNTDOWN_DELAY_MS` (350ms)** pause on the plain board before
+`startSession()` runs — the overlay disappearing and a target square
+lighting up at the exact same instant felt disorienting (the eye has
+to jump from "center of the board" to wherever the target turns out to
+be, with no beat to reorient), even though the per-square timer itself
+was correctly getting the full configured limit. That pause is a UX
+fix, not a timing fix: it doesn't shorten the first square's own time
+limit, it just delays when that limit starts counting.
 
 ### Slow threshold
 
@@ -317,7 +324,8 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 
 - `SLOW_THRESHOLD_MS`, `SQUARE_NAME_RE`, `SUMMARY_POPUP_DELAY_MS`,
   `DEFAULT_TIME_LIMIT_MS` (1000), `STRIKE_LIMIT` (3), `COUNTDOWN_START`
-  (3), and `COUNTDOWN_STEP_MS` (1000) are declared as constants at the
+  (3), `COUNTDOWN_STEP_MS` (1000), and `POST_COUNTDOWN_DELAY_MS` (350)
+  are declared as constants at the
   top of the file. Module-level `timeLimitMs` (initialized to
   `DEFAULT_TIME_LIMIT_MS`) holds the active session's configured
   limit; `answerTimeout` holds the pending per-square timeout id.
@@ -367,8 +375,12 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   - `runCountdownStep(n)`: shows `n` in `#countdownOverlay` (as a
     fresh `<span class="tick">` so the CSS animation replays), waits
     `COUNTDOWN_STEP_MS`, then either recurses with `n - 1` (if
-    `n > 1`) or hides the overlay, re-enables `#sessionBtn`, and calls
-    `startSession()` — this is the only path into `startSession()`.
+    `n > 1`) or hides the overlay and waits a further
+    `POST_COUNTDOWN_DELAY_MS` before re-enabling `#sessionBtn` and
+    calling `startSession()` — this nested delay, not the
+    `COUNTDOWN_STEP_MS` wait itself, is what gives the eye a beat on
+    the plain board before the first target appears. This is the only
+    path into `startSession()`.
   - `startSession()`: creates a fresh `session` (`attempts: []`,
     `misses: []`), resets the live counts, enables the answer form,
     sets the button to "Stop", and only *here* does anything
@@ -454,6 +466,13 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 - **Countdown length/pace is fixed**: `COUNTDOWN_START = 3` and
   `COUNTDOWN_STEP_MS = 1000` are constants, not configurable — the
   countdown itself isn't a difficulty knob the way the time limit is.
+- **350ms buffer after the countdown, not a longer first-square time
+  limit**: measured empirically that the first square's timer really
+  was getting the full configured `timeLimitMs` (no shortfall) —
+  what needed fixing was the abrupt overlay-disappears/target-appears
+  transition, not the clock. `POST_COUNTDOWN_DELAY_MS` delays *when*
+  the (unchanged) limit starts counting rather than special-casing the
+  first square's limit.
 - **`#sessionBtn` disabled during the countdown**: prevents a double
   click from starting two overlapping countdowns/sessions. It's the
   only place the button is disabled outside the countdown itself.
