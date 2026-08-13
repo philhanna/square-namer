@@ -1,7 +1,7 @@
 # Voice Input — Design
 
-**Status: design only — nothing in this document is implemented in `sqname.js`
-yet.**
+**Status: implemented in `sqname.js`/`index.html`/`sqname.css`, matching
+this document.**
 
 ## Problem
 
@@ -114,7 +114,7 @@ const FILE_WORDS = {
 
 const RANK_WORDS = {
   one: '1', won: '1',
-  two: '2', to: '2', too: '2',
+  two: '2',
   three: '3',
   four: '4', for: '4', fore: '4',
   five: '5',
@@ -138,7 +138,13 @@ Both tables are deliberately small and data-driven so new misheard
 variants can be added as they're observed in practice, without
 touching the parsing logic itself. Filler words ("square", "the",
 "go to") are harmless — they simply match nothing in either table and
-are skipped.
+are skipped. `RANK_WORDS` deliberately omits `to`/`too` as aliases for
+"2" even though they're phonetically closer than `two` alone — `to` is
+also the filler word in "go to b seven", and letting it double as a
+rank alias made that exact phrase misparse as `b2` (the filler "to"
+consumed as the rank before "seven" was ever read). "won" is safe to
+keep as a "1" alias since it doesn't otherwise appear as filler in a
+square-naming phrase the way "to" does.
 
 `SpeechRecognition.maxAlternatives` is set to `3`; when a result comes
 back, each alternative transcript is tried through `parseVoiceSquare`

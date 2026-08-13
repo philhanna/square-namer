@@ -62,6 +62,7 @@ const settingsOverlayEl = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const showCoordinatesInput = document.getElementById('showCoordinates');
 const pauseBtn = document.getElementById('pauseBtn');
+const voiceBtn = document.getElementById('voiceBtn');
 
 const PAUSE_ICON_SVG = pauseBtn.innerHTML;
 const RESUME_ICON_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 4l13 8-13 8z"/></svg>';
@@ -539,6 +540,135 @@ settingsCloseBtn.addEventListener('click', () => {
 settingsOverlayEl.addEventListener('click', (e) => {
   if (e.target === settingsOverlayEl) settingsOverlayEl.hidden = true;
 });
+
+const FILE_WORDS = {
+  a: 'a',
+  b: 'b', be: 'b', bee: 'b',
+  c: 'c', see: 'c', sea: 'c',
+  d: 'd', dee: 'd',
+  e: 'e',
+  f: 'f', ef: 'f', eff: 'f',
+  g: 'g', gee: 'g',
+  h: 'h', aitch: 'h',
+};
+
+const RANK_WORDS = {
+  one: '1', won: '1',
+  two: '2',
+  three: '3',
+  four: '4', for: '4', fore: '4',
+  five: '5',
+  six: '6',
+  seven: '7',
+  eight: '8', ate: '8',
+};
+
+function parseVoiceSquareFromWords(cleaned) {
+  const words = cleaned.split(/\s+/);
+  let file = null, rank = null;
+  for (const w of words) {
+    if (!file && FILE_WORDS[w]) file = FILE_WORDS[w];
+    if (!rank && RANK_WORDS[w]) rank = RANK_WORDS[w];
+  }
+  return (file && rank) ? file + rank : null;
+}
+
+function parseVoiceSquare(transcript) {
+  const cleaned = transcript.trim().toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const compact = cleaned.replace(/\s+/g, '');
+  if (SQUARE_NAME_RE.test(compact)) return compact;
+  return parseVoiceSquareFromWords(cleaned);
+}
+
+function parseVoiceCommand(transcript) {
+  const cleaned = transcript.trim().toLowerCase().replace(/[^a-z]/g, '');
+  if (cleaned === 'start' || cleaned === 'stop') return 'session';
+  if (cleaned === 'pause' || cleaned === 'resume') return 'pause';
+  return null;
+}
+
+const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+const voiceSupported = !!SpeechRecognitionImpl;
+let voiceActive = false;
+let recognizer = null;
+
+function createRecognizer() {
+  const r = new SpeechRecognitionImpl();
+  r.continuous = true;
+  r.interimResults = false;
+  r.maxAlternatives = 3;
+  r.lang = 'en-US';
+  r.onresult = handleVoiceResult;
+  r.onerror = handleVoiceError;
+  r.onend = handleVoiceEnd;
+  return r;
+}
+
+// Fills the answer field / clicks a button exactly as a real keypress or
+// tap would, rather than calling session functions directly — voice never
+// gets a second, parallel path into the drill logic.
+function actOnVoiceTranscript(transcript) {
+  const command = parseVoiceCommand(transcript);
+  if (command === 'session') {
+    sessionBtn.click();
+    return true;
+  }
+  if (command === 'pause') {
+    pauseBtn.click();
+    return true;
+  }
+  const square = parseVoiceSquare(transcript);
+  if (square) {
+    answerInput.value = square;
+    answerForm.requestSubmit();
+    return true;
+  }
+  return false;
+}
+
+function handleVoiceResult(event) {
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    const result = event.results[i];
+    if (!result.isFinal) continue;
+    for (let j = 0; j < result.length; j++) {
+      if (actOnVoiceTranscript(result[j].transcript)) break;
+    }
+  }
+}
+
+function handleVoiceEnd() {
+  // Browsers commonly end recognition on their own after a period of
+  // silence even with continuous = true; restart transparently.
+  if (voiceActive) recognizer.start();
+}
+
+function handleVoiceError(event) {
+  if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+    voiceActive = false;
+    voiceBtn.classList.remove('listening');
+    voiceBtn.setAttribute('aria-pressed', 'false');
+    feedbackEl.textContent = 'Microphone permission denied';
+    feedbackEl.className = 'warn';
+  }
+  // 'no-speech' and other transient errors are expected during normal
+  // pauses — onend fires right after and the restart above handles it.
+}
+
+if (voiceSupported) {
+  voiceBtn.hidden = false;
+  voiceBtn.addEventListener('click', () => {
+    voiceActive = !voiceActive;
+    if (voiceActive) {
+      if (!recognizer) recognizer = createRecognizer();
+      recognizer.start();
+      voiceBtn.classList.add('listening');
+    } else {
+      recognizer.stop();
+      voiceBtn.classList.remove('listening');
+    }
+    voiceBtn.setAttribute('aria-pressed', String(voiceActive));
+  });
+}
 
 // init — idle until Start is pressed
 buildBoard();
