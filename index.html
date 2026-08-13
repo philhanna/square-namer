@@ -36,20 +36,23 @@
   <div id="feedback"></div>
 </div>
 
-<div id="sessionSummary" hidden>
-  <h2>Session summary</h2>
-  <div id="summaryHeader"></div>
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th>Square</th>
-        <th>Times shown</th>
-        <th>Avg time</th>
-        <th>Slowest</th>
-      </tr>
-    </thead>
-    <tbody id="summaryBody"></tbody>
-  </table>
+<div id="summaryOverlay" hidden>
+  <div id="sessionSummary">
+    <h2>Session summary</h2>
+    <div id="summaryHeader"></div>
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>Square</th>
+          <th>Times shown</th>
+          <th>Avg time</th>
+          <th>Slowest</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody"></tbody>
+    </table>
+    <button type="button" id="summaryCloseBtn">Close</button>
+  </div>
 </div>
 
 <script src="sqname.js"></script>

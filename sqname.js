@@ -1,5 +1,6 @@
 const SLOW_THRESHOLD_MS = 500;
 const SQUARE_NAME_RE = /^[a-h][1-8]$/;
+const SUMMARY_POPUP_DELAY_MS = 500;
 
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
@@ -13,9 +14,10 @@ const orientationWhite = document.getElementById('orientationWhite');
 const orientationBlack = document.getElementById('orientationBlack');
 const sessionBtn = document.getElementById('sessionBtn');
 const sessionTimerEl = document.getElementById('sessionTimer');
-const sessionSummaryEl = document.getElementById('sessionSummary');
+const summaryOverlayEl = document.getElementById('summaryOverlay');
 const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryBodyEl = document.getElementById('summaryBody');
+const summaryCloseBtn = document.getElementById('summaryCloseBtn');
 
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
@@ -23,6 +25,7 @@ let targetShownAt = null;
 
 let session = null;        // { startedAt, endedAt, attempts: [], missed } while running, or after it ends
 let timerInterval = null;
+let summaryPopupTimeout = null;
 
 function squareColor(file, rank) {
   // a1 is dark. file: 0-7 (a-h), rank: 1-8
@@ -91,7 +94,8 @@ function startSession() {
   feedbackEl.className = '';
   updateLiveCount();
 
-  sessionSummaryEl.hidden = true;
+  clearTimeout(summaryPopupTimeout);
+  summaryOverlayEl.hidden = true;
   answerInput.disabled = false;
   sessionBtn.textContent = 'Stop session';
 
@@ -116,6 +120,9 @@ function endSession() {
   });
 
   renderSummary();
+  summaryPopupTimeout = setTimeout(() => {
+    summaryOverlayEl.hidden = false;
+  }, SUMMARY_POPUP_DELAY_MS);
 }
 
 function startTimer() {
@@ -189,8 +196,6 @@ function renderSummary() {
     `;
     summaryBodyEl.appendChild(tr);
   });
-
-  sessionSummaryEl.hidden = false;
 }
 
 answerForm.addEventListener('submit', (e) => {
@@ -252,6 +257,14 @@ function setOrientation(newFlipped) {
 
 orientationWhite.addEventListener('change', () => setOrientation(false));
 orientationBlack.addEventListener('change', () => setOrientation(true));
+
+summaryCloseBtn.addEventListener('click', () => {
+  summaryOverlayEl.hidden = true;
+});
+
+summaryOverlayEl.addEventListener('click', (e) => {
+  if (e.target === summaryOverlayEl) summaryOverlayEl.hidden = true;
+});
 
 // init — idle until Start is pressed
 buildBoard();

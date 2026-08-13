@@ -16,6 +16,10 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   drops its Accuracy column (now: Square, Times shown, Avg time, Slowest).
   The summary header reports how the session ended (`missed h6 (typed g5)`
   or `stopped manually`).
+- The session summary is now a pop-up modal (backdrop + centered card,
+  dismissed via a Close button or by clicking outside it) instead of a
+  panel inline below the board, and it appears 500ms after the session
+  ends rather than instantly.
 
 ## [0.3.0] - 2026-08-12
 

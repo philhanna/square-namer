@@ -20,7 +20,8 @@ consistently slow or error-prone.
   construction.
 - On session end, show a statistics table: how many squares were
   named before the session ended, which square (if any) broke the
-  streak, and per-square timing.
+  streak, and per-square timing. It appears as a separate pop-up, not
+  inline with the board, so it doesn't reflow the practice view.
 - Distinguish a genuine wrong answer (named the wrong square — ends
   the session) from a malformed guess (not a square name at all —
   doesn't end anything, doesn't count against the user).
@@ -192,8 +193,14 @@ above this value marks it as a trouble square in the summary table.
 
 ### Statistics table
 
-Rendered into a new `#sessionSummary` section, shown after the session
-ends and hidden while idle/running:
+Rendered into `#sessionSummary`, a modal card inside a fixed,
+full-viewport `#summaryOverlay` backdrop — not part of the board's
+normal document flow. It does not appear the instant the session
+ends: it pops up **`SUMMARY_POPUP_DELAY_MS` (500ms) after** `endSession()`
+runs, so the board/feedback state from the final square has a moment
+to register before the view is covered. The card is dismissed by its
+**Close** button or by clicking the backdrop outside it; both just
+hide the overlay, they don't affect session data.
 
 - Header line: total duration, number of squares answered correctly,
   and how it ended — e.g. `0m 42s · 12 squares · missed h6 (typed g5)`
@@ -203,6 +210,9 @@ ends and hidden while idle/running:
 - Rows sorted worst-first by `avgMs` (slowest average first).
 - Row highlighting (`.slow` class) for squares whose `avgMs` exceeds
   `SLOW_THRESHOLD_MS`.
+- Starting a new session before the 500ms popup timer has fired (e.g.
+  Stop → immediately Start again) cancels the pending pop-up — it must
+  not appear mid-way through the next session.
 
 ```
 Session: 0m 42s · 12 squares · missed h6 (typed g5)
@@ -217,8 +227,8 @@ Session: 0m 42s · 12 squares · missed h6 (typed g5)
 
 ## Implementation notes (sqname.js)
 
-- `SLOW_THRESHOLD_MS` and `SQUARE_NAME_RE` are declared as constants
-  at the top of the file.
+- `SLOW_THRESHOLD_MS`, `SQUARE_NAME_RE`, and `SUMMARY_POPUP_DELAY_MS`
+  are declared as constants at the top of the file.
 - No `checkBtn`, `resetBtn`, or `flipBtn` elements — the form has no
   submit button, there's no reset action, and orientation is set by
   the `#orientationWhite`/`#orientationBlack` radios instead of a
@@ -245,12 +255,21 @@ Session: 0m 42s · 12 squares · missed h6 (typed g5)
   form, hides the summary table, calls `buildBoard()` + `pickTarget()`.
 - `endSession()` (used by both the Stop button and the auto-miss
   path): sets `session.endedAt`, disables the form, clears the
-  highlighted target, computes per-square stats from
-  `session.attempts`, and renders `#sessionSummary`. The Stop button's
-  click handler calls this directly; the wrong-answer path calls it
-  from the 900ms timeout instead of calling `pickTarget()`. Guarded by
-  `if (!session || session.endedAt) return;` so it's safe to call
+  highlighted target, computes per-square stats via `renderSummary()`
+  (which only populates `#summaryHeader`/`#summaryBody` — it does not
+  toggle visibility), then schedules `summaryOverlayEl.hidden = false`
+  via `setTimeout(..., SUMMARY_POPUP_DELAY_MS)`, storing the timeout
+  id in `summaryPopupTimeout`. The Stop button's click handler calls
+  `endSession()` directly; the wrong-answer path calls it from the
+  900ms post-flash timeout instead of calling `pickTarget()`. Guarded
+  by `if (!session || session.endedAt) return;` so it's safe to call
   twice (e.g. Stop clicked during the post-miss delay).
+- `startSession()` calls `clearTimeout(summaryPopupTimeout)` and hides
+  `#summaryOverlay` up front, so a popup queued by a just-ended session
+  can never appear after a new one has started.
+- The Close button and clicks on the overlay backdrop (but not on the
+  card itself — checked via `e.target === summaryOverlayEl`) both just
+  set `summaryOverlayEl.hidden = true`.
 - `setOrientation(newFlipped)` (called from the radios' `change`
   handlers): updates `flipped`, rebuilds the board (which also updates
   the White/Black captions via `updateBoardCaptions()`), and
@@ -284,3 +303,8 @@ Session: 0m 42s · 12 squares · missed h6 (typed g5)
   real square name at all doesn't count against the session and
   doesn't end it — only a guess that names an actual (wrong) square
   does.
+- **Summary is a pop-up, not inline**: it lives in a fixed overlay
+  separate from the board, appears 500ms after the session actually
+  ends (not instantly), and is closed explicitly (Close button or
+  backdrop click) rather than by starting a new session — though
+  starting a new session does hide it and cancel any pending pop-up.
