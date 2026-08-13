@@ -53,15 +53,20 @@ until it ends, either because the user racks up **3 misses** (strikes)
 or because they press **Stop** manually.
 
 - **Idle** (initial state / after the session ends): board shows no
-  target, answer form is disabled, a **Start** button is
-  shown, and the time-limit input is editable.
+  target, `#answerInput` is enabled and **focused** (both on page load
+  and again right after a session ends), a **Start** button is shown,
+  and the time-limit input is editable. Starting isn't limited to
+  clicking the button — pressing **Enter in `#answerInput`** does the
+  same thing, unconditionally, regardless of whatever (if anything)
+  happens to be typed in it at the time.
 - **Counting down** (after Start is pressed, before the session
   actually begins): a big **"3 … 2 … 1"** countdown (`#countdownOverlay`,
   Puzzle Rush-style) is shown centered over the board, one second per
-  number. `#sessionBtn` is disabled and the time-limit input is locked
-  in for the duration — clicking Start can't be done twice, and the
-  limit can't change mid-countdown. Nothing session-related exists yet:
-  no `session` object, no target square, no per-square timer, no
+  number. `#sessionBtn`, `#timeLimitInput`, and `#answerInput` are all
+  disabled for the duration — clicking/pressing Enter on Start can't
+  be done twice, the limit can't change mid-countdown, and there's
+  nothing to type an answer to yet. Nothing session-related exists
+  yet: no `session` object, no target square, no per-square timer, no
   session timer. The board is rebuilt to a plain, no-target state (in
   the current orientation) so the countdown has a clean board to sit
   over.
@@ -222,9 +227,17 @@ answering controls, in this order:
 - **No Check button.** `#answerForm` has exactly one text field, so
   pressing Enter submits the form via the browser's built-in
   implicit-submission behavior — a submit button isn't required for
-  that to work. The button is removed from the markup entirely.
-- While idle, `#answerForm` is disabled and the board shows no target
-  square (all squares in normal light/dark colors).
+  that to work. The button is removed from the markup entirely. This
+  same implicit submission is what makes Enter-to-start work while
+  idle — the form's `submit` handler branches on session state (see
+  Implementation notes) rather than requiring a separate keyboard
+  listener.
+- `#answerInput` starts out enabled and focused (not disabled) so
+  Enter-to-start works immediately on page load; it's only disabled
+  during the countdown, and goes back to enabled+focused the instant
+  a session ends. The board itself still shows no target square while
+  idle (all squares in normal light/dark colors) — only the input's
+  enabled state changed, not the board's.
 
 **`#statusRow`, between `#topRow` and the board** — a thin line with
 `justify-content: space-between`:
@@ -407,7 +420,13 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   either calls `endSession()` (if `misses.length >= STRIKE_LIMIT`) or
   `pickTarget()` (otherwise).
 - The `answerForm` submit handler:
-  - First checks the trimmed/lowercased guess against
+  - First checks `if (!session || session.endedAt)`: if idle, calls
+    `beginCountdown()` and returns — this is what makes Enter in
+    `#answerInput` behave like clicking Start while idle, reusing the
+    browser's own implicit form-submission-on-Enter rather than a
+    separate keyboard listener. No guess-parsing happens in this case;
+    whatever (if anything) is in the field is irrelevant.
+  - Otherwise checks the trimmed/lowercased guess against
     `SQUARE_NAME_RE`. If it doesn't match, shows the warning feedback
     and returns immediately — no session state changes, no target
     change, no timer touched.
@@ -423,9 +442,11 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   - `beginCountdown()`: reads `timeLimitMs` from `#timeLimitInput`
     (`parseInt(...) || DEFAULT_TIME_LIMIT_MS`) and disables that
     input, disables `#sessionBtn` (so it can't be clicked again mid-
-    countdown), clears leftover feedback/summary state from any prior
-    session, calls `buildBoard()` for a clean no-target board, then
-    starts `runCountdownStep(COUNTDOWN_START)`. Nothing here creates a
+    countdown) and `#answerInput` (clearing its value too, so any
+    stray idle-typed text doesn't carry into the session), clears
+    leftover feedback/summary state from any prior session, calls
+    `buildBoard()` for a clean no-target board, then starts
+    `runCountdownStep(COUNTDOWN_START)`. Nothing here creates a
     `session` object or touches any timer.
   - `runCountdownStep(n)`: shows `n` in `#countdownOverlay` (as a
     fresh `<span class="tick">` so the CSS animation replays), waits
@@ -443,8 +464,11 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
     per-square timeout) and `startTimer()` (the session clock).
 - `endSession()` (used by the Stop button, the 3rd-miss path via
   `registerMiss()`, and nowhere else): cancels any pending
-  `answerTimeout`, sets `session.endedAt`, disables the form,
-  re-enables `#timeLimitInput`, clears the highlighted target,
+  `answerTimeout`, sets `session.endedAt`, re-enables
+  `#timeLimitInput`, clears the highlighted target, then clears and
+  **re-focuses** `#answerInput` (it's back to idle behavior: enabled,
+  ready for another Enter-to-start) — it does *not* disable the input,
+  unlike every other idle-transition in earlier iterations. Then
   computes per-square stats via `renderSummary()` (which only
   populates `#summaryHeader`/`#summaryBody` — it does not toggle
   visibility), then schedules `summaryOverlayEl.hidden = false` via
@@ -480,6 +504,10 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 - No changes needed to `squareColor`/`highlightTarget` geometry logic
   — session tracking, timing, and orientation are additive around the
   existing drill loop.
+- `#answerInput.focus()` is called in three places: once at module init
+  (page load), and inside `startSession()`/`endSession()` — i.e.
+  whenever the app lands on a state where typing (an answer, or just
+  Enter) is the expected next action.
 
 ## Decisions
 
@@ -494,6 +522,18 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 - **No Check button**: Enter-to-submit relies on the browser's
   implicit form submission for a single-field form; no button is
   needed for that behavior.
+- **`#answerInput` is enabled while idle, not just while running**: the
+  earlier design disabled it until a session started. Now it starts
+  (and returns, after a session ends) enabled and focused specifically
+  so Enter-to-start can reuse the same implicit-submission mechanism as
+  Enter-to-answer, instead of needing a separate always-listening
+  keyboard handler. It's disabled only during the countdown, when
+  there's genuinely nothing valid to do with it.
+- **Enter starts a session unconditionally**: whatever is typed in
+  `#answerInput` while idle is ignored — Enter always means "start,"
+  never "validate this as a square name first." `beginCountdown()`
+  clears the field itself, so stray idle text never leaks into the
+  session.
 - **No Reset stats button**: removed — nothing to reset once the live
   counter is derived directly from session data.
 - **No Flip-board toggle**: replaced by mutually exclusive White/Black

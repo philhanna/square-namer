@@ -142,6 +142,8 @@ function beginCountdown() {
   timeLimitMs = parseInt(timeLimitInput.value, 10) || DEFAULT_TIME_LIMIT_MS;
   timeLimitInput.disabled = true;
   sessionBtn.disabled = true;
+  answerInput.disabled = true;
+  answerInput.value = '';
 
   feedbackEl.textContent = '';
   feedbackEl.className = '';
@@ -190,7 +192,6 @@ function endSession() {
   session.endedAt = Date.now();
   stopTimer();
 
-  answerInput.disabled = true;
   timeLimitInput.disabled = false;
   sessionBtn.textContent = 'Start';
 
@@ -199,6 +200,8 @@ function endSession() {
   document.querySelectorAll('.sq').forEach(el => {
     el.classList.remove('target', 'flash-correct', 'flash-wrong');
   });
+  answerInput.value = '';
+  answerInput.focus();
 
   renderSummary();
   summaryPopupTimeout = setTimeout(() => {
@@ -285,7 +288,11 @@ function renderSummary() {
 
 answerForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  if (!session || session.endedAt) return;
+
+  if (!session || session.endedAt) {
+    beginCountdown();
+    return;
+  }
 
   const guess = answerInput.value.trim().toLowerCase();
   if (!guess) return;
@@ -362,3 +369,4 @@ settingsOverlayEl.addEventListener('click', (e) => {
 // init — idle until Start is pressed
 buildBoard();
 updateLiveCounts();
+answerInput.focus();

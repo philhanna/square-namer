@@ -12,6 +12,14 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   left edge, file letters (a-h) along the bottom edge, updating to match
   whenever the board orientation flips.
 
+### Changed
+- The answer field is now focused as soon as the page loads (and again
+  right after a session ends), instead of only once a session starts.
+- While idle, pressing Enter in the answer field starts a session, same
+  as clicking Start — regardless of what, if anything, is typed there.
+  The field is only disabled during the pre-session countdown now,
+  where previously it stayed disabled for the entire idle state.
+
 ## [1.0.0] - 2026-08-12
 
 First release.
