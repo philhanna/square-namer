@@ -1,6 +1,8 @@
 const SLOW_THRESHOLD_MS = 500;
 const SQUARE_NAME_RE = /^[a-h][1-8]$/;
 const SUMMARY_POPUP_DELAY_MS = 500;
+const DEFAULT_TIME_LIMIT_MS = 1000;
+const STRIKE_LIMIT = 3;
 
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
@@ -9,7 +11,9 @@ const boardCaptionBottom = document.getElementById('boardCaptionBottom');
 const answerForm = document.getElementById('answerForm');
 const answerInput = document.getElementById('answerInput');
 const feedbackEl = document.getElementById('feedback');
-const statCount = document.getElementById('statCount');
+const statRight = document.getElementById('statRight');
+const statWrong = document.getElementById('statWrong');
+const timeLimitInput = document.getElementById('timeLimitInput');
 const orientationWhite = document.getElementById('orientationWhite');
 const orientationBlack = document.getElementById('orientationBlack');
 const sessionBtn = document.getElementById('sessionBtn');
@@ -23,9 +27,11 @@ let flipped = false;   // false = White at bottom (standard), true = Black at bo
 let target = null;     // current correct square, e.g. "e4"
 let targetShownAt = null;
 
-let session = null;        // { startedAt, endedAt, attempts: [], missed } while running, or after it ends
+let session = null;        // { startedAt, endedAt, attempts: [], misses: [] } while running, or after it ends
 let timerInterval = null;
 let summaryPopupTimeout = null;
+let answerTimeout = null;
+let timeLimitMs = DEFAULT_TIME_LIMIT_MS;
 
 function squareColor(file, rank) {
   // a1 is dark. file: 0-7 (a-h), rank: 1-8
@@ -66,6 +72,17 @@ function pickTarget() {
   target = name;
   targetShownAt = Date.now();
   highlightTarget();
+
+  clearTimeout(answerTimeout);
+  answerTimeout = setTimeout(handleTimeout, timeLimitMs);
+}
+
+function handleTimeout() {
+  if (!session || session.endedAt || !target) return;
+  const elapsedMs = Date.now() - targetShownAt;
+  feedbackEl.textContent = `Too slow — that was ${target}`;
+  feedbackEl.className = 'wrong';
+  registerMiss(target, null, elapsedMs);
 }
 
 function highlightTarget() {
@@ -76,8 +93,25 @@ function highlightTarget() {
   if (el) el.classList.add('target');
 }
 
-function updateLiveCount() {
-  statCount.textContent = session ? session.attempts.length : 0;
+function updateLiveCounts() {
+  statRight.textContent = session ? session.attempts.length : 0;
+  statWrong.textContent = session ? session.misses.length : 0;
+}
+
+function registerMiss(square, guess, elapsedMs) {
+  session.misses.push({ square, guess, elapsedMs });
+  flashResult(false);
+  updateLiveCounts();
+  answerInput.value = '';
+
+  setTimeout(() => {
+    if (!session || session.endedAt) return;
+    if (session.misses.length >= STRIKE_LIMIT) {
+      endSession();
+    } else {
+      pickTarget();
+    }
+  }, 900);
 }
 
 function flashResult(isCorrect) {
@@ -89,10 +123,13 @@ function flashResult(isCorrect) {
 }
 
 function startSession() {
-  session = { startedAt: Date.now(), endedAt: null, attempts: [], missed: null };
+  timeLimitMs = parseInt(timeLimitInput.value, 10) || DEFAULT_TIME_LIMIT_MS;
+  timeLimitInput.disabled = true;
+
+  session = { startedAt: Date.now(), endedAt: null, attempts: [], misses: [] };
   feedbackEl.textContent = '';
   feedbackEl.className = '';
-  updateLiveCount();
+  updateLiveCounts();
 
   clearTimeout(summaryPopupTimeout);
   summaryOverlayEl.hidden = true;
@@ -107,10 +144,12 @@ function startSession() {
 
 function endSession() {
   if (!session || session.endedAt) return;
+  clearTimeout(answerTimeout);
   session.endedAt = Date.now();
   stopTimer();
 
   answerInput.disabled = true;
+  timeLimitInput.disabled = false;
   sessionBtn.textContent = 'Start session';
 
   target = null;
@@ -151,15 +190,19 @@ function formatMs(ms) {
   return (ms / 1000).toFixed(1) + 's';
 }
 
+function describeMiss(miss) {
+  return miss.guess ? `${miss.square} (typed ${miss.guess})` : `${miss.square} (timed out)`;
+}
+
 function renderSummary() {
   const attempts = session.attempts;
+  const misses = session.misses;
   const duration = session.endedAt - session.startedAt;
-  const outcome = session.missed
-    ? `missed ${session.missed.square} (typed ${session.missed.guess || '(blank)'})`
-    : 'stopped manually';
+  const endedBy = misses.length >= STRIKE_LIMIT ? 'struck out' : 'stopped manually';
 
-  summaryHeaderEl.textContent =
-    `${formatDuration(duration)} · ${attempts.length} squares · ${outcome}`;
+  summaryHeaderEl.innerHTML =
+    `${formatDuration(duration)} · ${attempts.length} right · ${misses.length} wrong · ${endedBy}` +
+    (misses.length ? `<br>${misses.map(describeMiss).join(', ')}` : '');
 
   const perSquare = {};
   attempts.forEach(a => {
@@ -212,6 +255,8 @@ answerForm.addEventListener('submit', (e) => {
     return;
   }
 
+  clearTimeout(answerTimeout);
+
   const answeredAt = Date.now();
   const elapsedMs = answeredAt - targetShownAt;
   const isCorrect = guess === target;
@@ -220,23 +265,17 @@ answerForm.addEventListener('submit', (e) => {
     session.attempts.push({ square: target, shownAt: targetShownAt, answeredAt, elapsedMs });
     feedbackEl.textContent = 'Correct — ' + target;
     feedbackEl.className = 'correct';
+    flashResult(true);
+    updateLiveCounts();
+    answerInput.value = '';
+    setTimeout(() => {
+      if (session && !session.endedAt) pickTarget();
+    }, 350);
   } else {
-    session.missed = { square: target, guess, elapsedMs };
     feedbackEl.textContent = `Wrong — that was ${target}, you said ${guess}`;
     feedbackEl.className = 'wrong';
+    registerMiss(target, guess, elapsedMs);
   }
-
-  flashResult(isCorrect);
-  updateLiveCount();
-  answerInput.value = '';
-
-  setTimeout(() => {
-    if (isCorrect) {
-      if (session && !session.endedAt) pickTarget();
-    } else {
-      endSession();
-    }
-  }, isCorrect ? 350 : 900);
 });
 
 sessionBtn.addEventListener('click', () => {
@@ -268,4 +307,4 @@ summaryOverlayEl.addEventListener('click', (e) => {
 
 // init — idle until Start is pressed
 buildBoard();
-updateLiveCount();
+updateLiveCounts();

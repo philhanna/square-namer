@@ -7,6 +7,19 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Added
+- A configurable per-square time limit (`#timeLimitInput`, default 1000ms),
+  shown in the same row as the orientation radios. Answering after the
+  limit counts as a miss ("timed out"), even if the guess is correct.
+- Live right/wrong counts (green/red) in that same row, to the left of the
+  orientation radios, replacing the earlier single "Squares" counter.
+
+### Changed
+- Sessions are now "3 strikes and you're out," Puzzle Rush-style: a miss
+  (wrong guess or timeout) no longer ends the session immediately — it
+  takes 3 misses. The summary lists every miss and how it happened
+  (`typed g5` vs. `timed out`).
+
 ## [0.4.0] - 2026-08-12
 
 ### Changed

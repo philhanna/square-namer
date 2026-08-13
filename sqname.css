@@ -32,19 +32,6 @@ h1 {
   margin-bottom: 18px;
   text-align: center;
 }
-.stats {
-  display: flex;
-  gap: 18px;
-  background: var(--panel);
-  padding: 10px 18px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  font-size: 0.95rem;
-}
-.stats div { text-align: center; }
-.stats .val { font-size: 1.2rem; font-weight: 700; }
-.stats .lbl { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-
 #session {
   display: flex;
   align-items: center;
@@ -61,6 +48,47 @@ h1 {
   min-width: 3.5em;
   text-align: center;
 }
+#timeLimitLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+#timeLimitInput {
+  width: 5em;
+  font-size: 0.9rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #111;
+  color: var(--text);
+}
+#timeLimitInput:disabled { opacity: 0.5; }
+
+#scoreCounts {
+  display: flex;
+  gap: 12px;
+}
+#scoreCounts .scoreItem {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+#scoreCounts .scoreVal {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+#scoreCounts .scoreVal.right { color: var(--correct); }
+#scoreCounts .scoreVal.wrong { color: var(--wrong); }
+#scoreCounts .scoreLbl {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 #orientation {
   display: flex;
   align-items: center;

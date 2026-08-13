@@ -13,14 +13,18 @@
 <div id="session">
   <button type="button" id="sessionBtn">Start session</button>
   <div id="sessionTimer">00:00</div>
+  <label id="timeLimitLabel">
+    Time limit (ms)
+    <input type="number" id="timeLimitInput" min="100" step="100" value="1000" />
+  </label>
+  <div id="scoreCounts">
+    <span class="scoreItem"><span class="scoreVal right" id="statRight">0</span><span class="scoreLbl">right</span></span>
+    <span class="scoreItem"><span class="scoreVal wrong" id="statWrong">0</span><span class="scoreLbl">wrong</span></span>
+  </div>
   <div id="orientation">
     <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
     <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
   </div>
-</div>
-
-<div class="stats">
-  <div><div class="val" id="statCount">0</div><div class="lbl">Squares</div></div>
 </div>
 
 <div id="boardWrap">
