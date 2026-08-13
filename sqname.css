@@ -323,12 +323,18 @@ button:disabled {
 #sessionSummary {
   width: min(92vw, 420px);
   max-height: 85vh;
-  overflow-y: auto;
   background: var(--panel);
   border-radius: 10px;
   padding: 16px 18px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   animation: summaryPopIn 180ms ease-out;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+#summaryTableWrap {
+  overflow-y: auto;
+  min-height: 0;
 }
 #sessionSummary h2 {
   font-size: 1rem;
@@ -338,6 +344,7 @@ button:disabled {
 #summaryCloseBtn {
   margin-top: 14px;
   width: 100%;
+  flex-shrink: 0;
 }
 #summaryHeader {
   color: var(--muted);
