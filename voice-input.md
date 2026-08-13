@@ -17,9 +17,10 @@ defeats the drill.
 - Let the player answer a square by speaking its name (e.g. "e four")
   instead of typing it, so no on-screen keyboard ever needs to appear.
 - Let the player say **"start"** / **"stop"** to control the session
-  the same way `#sessionBtn` does, for the same reason — no need to
-  tap a keyboard-adjacent control mid-drill.
-- Recognize only a small, fixed vocabulary: the two command words and
+  the same way `#sessionBtn` does, and **"pause"** / **"resume"** to
+  control it the same way `#pauseBtn` does, for the same reason — no
+  need to tap a keyboard-adjacent control mid-drill.
+- Recognize only a small, fixed vocabulary: the four command words and
   the 64 square names (spoken as a file letter + a rank digit, e.g.
   "b seven"). This is not general dictation.
 - Degrade invisibly on any browser without Web Speech API support —
@@ -46,7 +47,7 @@ defeats the drill.
 ## Core design principle
 
 **Voice input never talks to game-state functions directly.** It only
-ever does one of two things, both already wired up for mouse/keyboard
+ever does one of three things, all already wired up for mouse/keyboard
 use:
 
 1. Fill `#answerInput.value` with a recognized square and call
@@ -54,13 +55,23 @@ use:
    pressing Enter does today.
 2. Call `sessionBtn.click()` — exactly what tapping Start/Stop does
    today.
+3. Call `pauseBtn.click()` — exactly what tapping the pause/resume
+   icon button does today.
 
 Every state guard that already exists (`#sessionBtn` disabled during
-the countdown, `SQUARE_NAME_RE` validation, `session.endedAt` checks,
-the malformed-guess warning path) keeps working unmodified, because
-voice is going through the same code path a real click or keypress
-would. There is no second, parallel implementation of the drill logic
-to keep in sync with the first.
+the countdown, `#pauseBtn` disabled whenever no session is running,
+`SQUARE_NAME_RE` validation, `session.endedAt` checks, the
+malformed-guess warning path) keeps working unmodified, because voice
+is going through the same code path a real click or keypress would.
+There is no second, parallel implementation of the drill logic to keep
+in sync with the first. In particular, both `#sessionBtn` and
+`#pauseBtn` are plain toggle buttons — clicking either one always
+flips it to its *other* state, regardless of which word the player
+actually said. Saying "start" while a session is already running
+still just calls `sessionBtn.click()`, which stops it, the same
+mismatch that already exists if a player mistakenly clicks Stop
+thinking it says Start. Voice doesn't attempt to correct for this; see
+"Known limitations."
 
 ## Vocabulary and recognition strategy
 
@@ -140,8 +151,8 @@ noise but a lower-ranked alternative is a clean match.
 ```js
 function parseVoiceCommand(transcript) {
   const cleaned = transcript.trim().toLowerCase().replace(/[^a-z]/g, '');
-  if (cleaned === 'start') return 'start';
-  if (cleaned === 'stop') return 'stop';
+  if (cleaned === 'start' || cleaned === 'stop') return 'session';
+  if (cleaned === 'pause' || cleaned === 'resume') return 'pause';
   return null;
 }
 ```
@@ -151,7 +162,17 @@ Matched with **exact equality on the whole utterance**, not
 too, so an `includes`-style check on "stop" would risk false-triggering
 on background conversation ("let's stop for coffee" ending a session
 mid-drill). Exact-match after trimming means only an utterance that
-was *just* "stop" and nothing else fires the command.
+was *just* "stop" (or "start"/"pause"/"resume") and nothing else fires
+a command.
+
+Both `sessionBtn` and `pauseBtn` are toggles, so — as noted under
+"Core design principle" — the parser only needs to know *which button*
+a word maps to, not which direction it should toggle: "start" and
+"stop" both resolve to `'session'` (→ `sessionBtn.click()`), "pause"
+and "resume" both resolve to `'pause'` (→ `pauseBtn.click()`). The
+button's own current label/disabled state — not the specific word
+spoken — is what actually determines whether the click starts, stops,
+pauses, or resumes.
 
 ## Lifecycle
 
@@ -176,9 +197,12 @@ was *just* "stop" and nothing else fires the command.
   / `answerForm.requestSubmit()` exactly as an errant Enter keypress
   would in the same state today, which is already-existing behavior,
   not something voice introduces.
-- **Recognized command** ("start" or "stop"): `sessionBtn.click()`.
-  The button's own `disabled` state (set during the countdown) already
-  prevents a double-start the same way it prevents a double-click.
+- **Recognized command** ("start"/"stop" or "pause"/"resume"):
+  `sessionBtn.click()` or `pauseBtn.click()` respectively. Each
+  button's own `disabled` state (`#sessionBtn` during the countdown;
+  `#pauseBtn` whenever no session is running — idle, mid-countdown, or
+  after the session ends) already prevents a click from doing anything
+  invalid, the same way it prevents an invalid manual click.
 - **Recognized square**: `answerInput.value` is set to the parsed
   square and `answerForm.requestSubmit()` is called. From there,
   everything is unchanged from [design.md](design.md) — correct/wrong/
@@ -196,16 +220,17 @@ was *just* "stop" and nothing else fires the command.
 - `#voiceBtn` — a new button in `#topRow`, feature-detected `hidden`
   by default. Sits beside `#settingsBtn` at the right end of the row
   (both are secondary toggles, distinct from the primary
-  `#sessionBtn` action on the left): `#sessionBtn`, `#answerForm`,
-  `#sessionTimer`, `#voiceBtn`, `#settingsBtn`.
+  `#sessionBtn`/`#pauseBtn` actions on the left): `#sessionBtn`,
+  `#pauseBtn`, `#answerForm`, `#sessionTimer`, `#voiceBtn`,
+  `#settingsBtn`.
 - Icon: 🎙, styled like `#settingsBtn` (neutral gray square button) when
   off. A `.listening` class swaps it to a distinguishable active state
   — e.g. a red pulsing dot/border via a CSS animation, so the player
   can tell at a glance whether the mic is live without needing to
   check `aria-pressed` or read text.
-- `#answerInput` and `#sessionBtn` are completely unchanged — voice is
-  additive, not a replacement. A player can type, tap, or speak
-  interchangeably at any point.
+- `#answerInput`, `#sessionBtn`, and `#pauseBtn` are completely
+  unchanged — voice is additive, not a replacement. A player can type,
+  tap, or speak interchangeably at any point.
 
 ## Implementation notes
 
@@ -232,9 +257,10 @@ was *just* "stop" and nothing else fires the command.
   `event.resultIndex` onward, skips non-final results
   (`!result.isFinal`), and for each final result tries each
   alternative's transcript through `parseVoiceCommand` then
-  `parseVoiceSquare` until one resolves, then acts (`sessionBtn.click()`
-  or fill-and-submit) and stops looking at further alternatives for
-  that result.
+  `parseVoiceSquare` until one resolves, then acts — `sessionBtn.click()`
+  if `parseVoiceCommand` returned `'session'`, `pauseBtn.click()` if it
+  returned `'pause'`, or fill-and-submit for a resolved square — and
+  stops looking at further alternatives for that result.
 - `handleVoiceEnd()`: browsers commonly end a recognition session on
   their own after a period of silence, even with `continuous = true`
   — behavior isn't fully consistent across engines. If `voiceActive`
@@ -301,19 +327,28 @@ but as a starting point:
   literally "stop" (or a well-formed square, purely by chance) is
   still possible. Given the low stakes of a practice drill, this is
   accepted rather than engineered around.
+- **Saying the "wrong" toggle word still fires the click.** Because
+  `sessionBtn.click()` and `pauseBtn.click()` are dumb toggles (see
+  "Core design principle"), a misrecognition of "stop" as "start" (or
+  vice versa) — or "pause" as "resume" — still clicks the button and
+  therefore still flips its state, just not to the state the player
+  asked for. This mirrors what already happens if a player fat-fingers
+  the wrong on-screen button; voice doesn't add a new failure mode
+  here, it just adds a new way to trigger the existing one.
 
 ## Decisions
 
-- **Reuse `answerForm.requestSubmit()` / `sessionBtn.click()` rather
-  than calling `startSession()`/`endSession()`/scoring logic
-  directly**: keeps a single source of truth for every state guard
-  already in `sqname.js`. A second parallel path invoked by voice
-  would inevitably drift out of sync with the keyboard/mouse path as
-  the app evolves.
+- **Reuse `answerForm.requestSubmit()` / `sessionBtn.click()` /
+  `pauseBtn.click()` rather than calling
+  `startSession()`/`endSession()`/`pauseSession()`/`resumeSession()`/
+  scoring logic directly**: keeps a single source of truth for every
+  state guard already in `sqname.js`. A second parallel path invoked
+  by voice would inevitably drift out of sync with the keyboard/mouse
+  path as the app evolves.
 - **No settings by voice**: explicitly requested scope. Settings are
   configured once per session and rarely touched mid-drill, unlike
-  square-naming and start/stop, which happen constantly and are
-  exactly what the keyboard-covers-the-board problem affects.
+  square-naming and start/stop/pause/resume, which happen constantly
+  and are exactly what the keyboard-covers-the-board problem affects.
 - **Silent-ignore for unresolved utterances, not a warning**: voice
   produces far more noise than typing; treating every unresolved
   utterance as a warning (mirroring the malformed-typed-guess UX)
