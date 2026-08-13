@@ -7,6 +7,8 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-12
+
 ### Added
 - A "Show rank/file labels" checkbox in the Settings popup (checked by
   default), letting the board's coordinate border be turned off. Applies
