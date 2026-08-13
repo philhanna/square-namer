@@ -7,6 +7,14 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-08-12
+
+### Fixed
+- The session summary popup's Close button could be pushed off-screen
+  by a long per-square table, requiring the whole popup to be scrolled
+  to reach it. The table now scrolls in its own internal region while
+  the Close button stays pinned and always visible at the bottom.
+
 ## [1.3.0] - 2026-08-12
 
 ### Added
