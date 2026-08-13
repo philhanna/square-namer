@@ -53,11 +53,11 @@ either because the user racks up **3 misses** (strikes) or because
 they press **Stop** manually.
 
 - **Idle** (initial state / after the session ends): board shows no
-  target, answer form is disabled, a **Start session** button is
+  target, answer form is disabled, a **Start** button is
   shown, and the time-limit input is editable.
 - **Running** (after Start): a square is highlighted, the answer form
   is enabled, timing begins, and a per-square countdown for the
-  configured time limit starts. The button reads **Stop session**.
+  configured time limit starts. The button reads **Stop**.
   Enter submits the guess — there is no separate Check button. The
   time-limit input is disabled for the duration, so a session's data
   is never measured against a limit that changed mid-session.
@@ -184,43 +184,52 @@ wrong — if it matches `/^[a-h][1-8]$/`, a well-formed square name.
 
 ### Controls
 
+There are two control rows, both capped to the board's own width
+(`min(92vw, 420px)`) so neither ever runs wider than the board itself.
+
+**Top row (`#session`, above the board)** — settings that apply to the
+session as a whole, not the current answer:
+
+- A **time limit** input (`#timeLimitInput`, milliseconds, default
+  1000), labeled "Time limit (ms)" (`#timeLimitLabel`). Like the old
+  slow-threshold input, it's editable only while idle and disabled for
+  the duration of a running session, so a session's timing data is
+  never measured against a limit that changed partway through.
+- **Live right/wrong counts** (`#scoreCounts`, holding `#statRight` /
+  `#statWrong`), immediately to the left of the orientation radios.
+  The right count is styled green (`var(--correct)`), the wrong count
+  red (`var(--wrong)`), each with a small "right"/"wrong" label
+  underneath, mirroring the old `.stats` panel's val/label look but
+  inline in the row instead of a separate block below it.
+- **Board orientation**, set by two mutually exclusive radio buttons
+  (`#orientationWhite` / `#orientationBlack`) — not a single "Flip
+  board" toggle button. Selecting one directly sets which color
+  occupies the bottom row.
+
+**Bottom row (`#answerRow`, inside `#controls`, alongside the board)**
+— the moment-to-moment answering controls:
+
 - **Start/Stop button** (`#sessionBtn`) — single toggle button. Label
-  switches between "Start session" and "Stop session".
-- **No Check button.** `#answerForm` has exactly one text field
-  (`#answerInput`), so pressing Enter submits the form via the
-  browser's built-in implicit-submission behavior — a submit button
-  isn't required for that to work. The button is removed from the
-  markup entirely.
+  switches between "Start" and "Stop".
+- A small **session timer** (`#sessionTimer`) showing elapsed
+  wall-clock time, updated once per second while running.
+- `#answerForm`, containing only `#answerInput`, given `flex: 1` so it
+  fills the remaining width next to the button and timer.
+- **No Check button.** `#answerForm` has exactly one text field, so
+  pressing Enter submits the form via the browser's built-in
+  implicit-submission behavior — a submit button isn't required for
+  that to work. The button is removed from the markup entirely.
 - **No Reset stats button.** The live right/wrong counts are read
   directly from `session.attempts.length` / `session.misses.length`,
   and starting a new session already resets them — there's nothing
   left for a separate reset action to do.
 - While idle, `#answerForm` is disabled and the board shows no target
   square (all squares in normal light/dark colors).
-- A small **session timer** (`#sessionTimer`) showing elapsed
-  wall-clock time, updated once per second while running.
-- A **time limit** input (`#timeLimitInput`, milliseconds, default
-  1000) sits in the same `#session` control row as the Start/Stop
-  button and the timer — labeled "Time limit (ms)" (`#timeLimitLabel`).
-  Like the old slow-threshold input, it's editable only while idle and
-  disabled for the duration of a running session, so a session's
-  timing data is never measured against a limit that changed partway
-  through.
-- **Live right/wrong counts** (`#scoreCounts`, holding `#statRight` /
-  `#statWrong`) sit in that same row, immediately to the left of the
-  orientation radios. The right count is styled green
-  (`var(--correct)`), the wrong count red (`var(--wrong)`), each with
-  a small "right"/"wrong" label underneath, mirroring the old
-  `.stats` panel's val/label look but inline in the row instead of a
-  separate block below it.
-- **Board orientation** is set by two mutually exclusive radio buttons
-  (`#orientationWhite` / `#orientationBlack`) in that same row — not a
-  single "Flip board" toggle button. Selecting one directly sets which
-  color occupies the bottom row.
-- Small centered **"White"/"Black" captions** above and below the
-  board (`#boardCaptionTop` / `#boardCaptionBottom`) that swap
-  whenever orientation changes, so it's always clear which side is
-  which.
+
+Small centered **"White"/"Black" captions** above and below the board
+(`#boardCaptionTop` / `#boardCaptionBottom`) swap whenever orientation
+changes, so it's always clear which side is which regardless of which
+radio (in the row above) is currently selected.
 
 ### Slow threshold
 

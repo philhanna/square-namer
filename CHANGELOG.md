@@ -7,6 +7,13 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Changed
+- Moved the Start/Stop button and the session timer down into the bottom
+  row alongside the answer input, instead of the settings row above the
+  board. Both control rows are capped to the board's own width.
+- Shortened the button label from "Start session"/"Stop session" to just
+  "Start"/"Stop".
+
 ## [1.0.0-RC1] - 2026-08-12
 
 ### Added

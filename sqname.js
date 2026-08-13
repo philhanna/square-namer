@@ -134,7 +134,7 @@ function startSession() {
   clearTimeout(summaryPopupTimeout);
   summaryOverlayEl.hidden = true;
   answerInput.disabled = false;
-  sessionBtn.textContent = 'Stop session';
+  sessionBtn.textContent = 'Stop';
 
   buildBoard();
   pickTarget();
@@ -150,7 +150,7 @@ function endSession() {
 
   answerInput.disabled = true;
   timeLimitInput.disabled = false;
-  sessionBtn.textContent = 'Start session';
+  sessionBtn.textContent = 'Start';
 
   target = null;
   targetShownAt = null;

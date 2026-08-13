@@ -11,8 +11,6 @@
 <div class="subtitle">A square lights up — type its name and hit Enter.</div>
 
 <div id="session">
-  <button type="button" id="sessionBtn">Start session</button>
-  <div id="sessionTimer">00:00</div>
   <label id="timeLimitLabel">
     Time limit (ms)
     <input type="number" id="timeLimitInput" min="100" step="100" value="1000" />
@@ -34,9 +32,13 @@
 </div>
 
 <div id="controls">
-  <form id="answerForm">
-    <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
-  </form>
+  <div id="answerRow">
+    <button type="button" id="sessionBtn">Start</button>
+    <div id="sessionTimer">00:00</div>
+    <form id="answerForm">
+      <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
+    </form>
+  </div>
   <div id="feedback"></div>
 </div>
 

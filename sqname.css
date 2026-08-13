@@ -147,10 +147,17 @@ h1 {
   gap: 10px;
   width: min(92vw, 420px);
 }
+#answerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
 #answerForm {
   display: flex;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 #answerInput {
   flex: 1;
