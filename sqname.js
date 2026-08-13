@@ -31,6 +31,7 @@ const fileLabelsEl = document.getElementById('fileLabels');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsOverlayEl = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+const showCoordinatesInput = document.getElementById('showCoordinates');
 
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
@@ -41,6 +42,8 @@ let timerInterval = null;
 let summaryPopupTimeout = null;
 let answerTimeout = null;
 let timeLimitMs = DEFAULT_TIME_LIMIT_MS;
+let lastRanks = null;      // ranks/fileOrder from the most recent buildBoard(), for
+let lastFileOrder = null;  // re-rendering coordinate labels without rebuilding the board
 
 function squareColor(file, rank) {
   // a1 is dark. file: 0-7 (a-h), rank: 1-8
@@ -71,12 +74,19 @@ function buildBoard() {
     });
   });
 
+  lastRanks = ranks;
+  lastFileOrder = fileOrder;
   updateCoordinateLabels(ranks, fileOrder);
 }
 
 function updateCoordinateLabels(ranks, fileOrder) {
-  rankLabelsEl.innerHTML = ranks.map(r => `<span>${r}</span>`).join('');
-  fileLabelsEl.innerHTML = fileOrder.map(f => `<span>${f}</span>`).join('');
+  if (showCoordinatesInput.checked) {
+    rankLabelsEl.innerHTML = ranks.map(r => `<span>${r}</span>`).join('');
+    fileLabelsEl.innerHTML = fileOrder.map(f => `<span>${f}</span>`).join('');
+  } else {
+    rankLabelsEl.innerHTML = '';
+    fileLabelsEl.innerHTML = '';
+  }
 }
 
 function pickTarget() {
@@ -345,6 +355,10 @@ function setOrientation(newFlipped) {
 
 orientationWhite.addEventListener('change', () => setOrientation(false));
 orientationBlack.addEventListener('change', () => setOrientation(true));
+
+showCoordinatesInput.addEventListener('change', () => {
+  updateCoordinateLabels(lastRanks, lastFileOrder);
+});
 
 summaryCloseBtn.addEventListener('click', () => {
   summaryOverlayEl.hidden = true;

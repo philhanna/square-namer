@@ -281,7 +281,26 @@ not a second, potentially-divergent orientation calculation. So the
 labels are guaranteed to always match what's actually on the board,
 including immediately on orientation change (`setOrientation()` already
 calls `buildBoard()`, which now updates labels as a side effect, same
-as it already did for the captions).
+as it already did for the captions). `buildBoard()` also stashes those
+same arrays in module-level `lastRanks`/`lastFileOrder`, purely so the
+visibility toggle below can re-render the labels without needing to
+rebuild the board (and without recomputing orientation logic itself).
+
+**Visibility is configurable** via a checkbox in the settings popup
+(`#showCoordinates`, checked by default). `updateCoordinateLabels()`
+checks `showCoordinatesInput.checked`: when on, it populates
+`#rankLabels`/`#fileLabels` as before; when off, it sets both to empty
+`innerHTML`, leaving `#boardFrame`'s grid tracks (and thus the overall
+board size) unchanged — the label columns/rows stay reserved as blank
+space rather than the board resizing to fill them. Toggling the
+checkbox calls `updateCoordinateLabels(lastRanks, lastFileOrder)`
+directly — **not** `buildBoard()`, which would wipe `.target`/
+`.flash-correct`/`.flash-wrong` classes on the actual squares
+(`boardEl.innerHTML = ''` at the top of `buildBoard()`) and disrupt a
+running session's highlighted square. This mirrors why orientation
+changes call `setOrientation()` → `buildBoard()` and then explicitly
+re-highlight the target afterward; the coordinate toggle sidesteps the
+whole issue by never touching `#board` at all.
 
 ### Settings popup
 
@@ -306,13 +325,18 @@ automatically. It contains, stacked vertically for compactness:
   "Flip board" toggle button. Selecting one directly sets which color
   occupies the bottom row; the popup doesn't need to be closed for this
   to take effect, and doesn't auto-close when you do it.
+- A **"Show rank/file labels"** checkbox (`#showCoordinates`, checked
+  by default), toggling the coordinate border described above. Same
+  immediate-effect, no-close-needed behavior as the orientation radios.
 - A **Close** button (`#settingsCloseBtn`), full-width.
 
 Opening/closing the settings popup doesn't pause or otherwise interact
 with a running session or an in-progress countdown — it's purely a
-view on top of `#timeLimitInput`/the orientation radios, which already
-know how to reflect and enforce their own idle/running-disabled state
-regardless of which container they're rendered inside.
+view on top of `#timeLimitInput`/the orientation radios/the coordinate
+checkbox, which already know how to reflect and enforce their own
+idle/running-disabled state (or, for the checkbox, apply instantly
+without touching session state at all) regardless of which container
+they're rendered inside.
 
 ### Pre-session countdown
 
@@ -603,3 +627,20 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
   state that already knows how to protect itself
   (`#timeLimitInput.disabled`), not a modal that needs to coordinate
   with the drill loop.
+- **Coordinate labels are configurable, on by default**: a "Show
+  rank/file labels" checkbox in settings, checked out of the box so
+  the border is discoverable rather than opt-in-only. No persistence
+  across page reloads (consistent with every other setting).
+- **Toggling coordinates never touches `#board`**: it's implemented as
+  a targeted re-render of just `#rankLabels`/`#fileLabels` from cached
+  `lastRanks`/`lastFileOrder`, specifically to avoid calling
+  `buildBoard()` (which clears and rebuilds all 64 squares, wiping
+  `.target`/flash classes) from a control that has nothing to do with
+  gameplay state. Same reasoning that keeps the popup from pausing
+  anything — a settings toggle shouldn't have side effects on a
+  running session.
+- **Turning labels off reserves the same space rather than resizing
+  the board**: `#boardFrame`'s grid tracks are unconditionally sized;
+  hiding labels just empties their content. Keeps the board's own
+  pixel size stable regardless of the toggle, so nothing else on the
+  page needs to reflow when it's flipped.

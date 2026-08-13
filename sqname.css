@@ -304,6 +304,14 @@ button:disabled {
   font-size: 0.9rem;
   cursor: pointer;
 }
+#coordLabelsToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
 #settingsCloseBtn {
   width: 100%;
 }

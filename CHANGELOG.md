@@ -7,6 +7,11 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Added
+- A "Show rank/file labels" checkbox in the Settings popup (checked by
+  default), letting the board's coordinate border be turned off. Applies
+  instantly and doesn't affect a running session's highlighted square.
+
 ## [1.1.0] - 2026-08-12
 
 ### Added
