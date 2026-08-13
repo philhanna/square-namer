@@ -191,7 +191,7 @@ There are two control rows, both capped to the board's own width
 session as a whole, not the current answer:
 
 - A **time limit** input (`#timeLimitInput`, milliseconds, default
-  1000), labeled "Time limit (ms)" (`#timeLimitLabel`). Like the old
+  1000), labeled "Per-square time limit (ms)" (`#timeLimitLabel`). Like the old
   slow-threshold input, it's editable only while idle and disabled for
   the duration of a running session, so a session's timing data is
   never measured against a limit that changed partway through.
@@ -210,11 +210,15 @@ session as a whole, not the current answer:
 — the moment-to-moment answering controls:
 
 - **Start/Stop button** (`#sessionBtn`) — single toggle button. Label
-  switches between "Start" and "Stop".
-- A small **session timer** (`#sessionTimer`) showing elapsed
-  wall-clock time, updated once per second while running.
+  switches between "Start" and "Stop". Sits on the left end of the row.
 - `#answerForm`, containing only `#answerInput`, given `flex: 1` so it
-  fills the remaining width next to the button and timer.
+  fills the remaining width and sits visually centered between the
+  Start/Stop button and the session timer.
+- A small **session timer** (`#sessionTimer`) showing elapsed
+  wall-clock time, updated once per second while running. Sits on the
+  right end of the row — deliberately placed after `#answerForm` in
+  the markup (not right after the button) so the flexible answer
+  field lands in the middle of the row rather than off to one side.
 - **No Check button.** `#answerForm` has exactly one text field, so
   pressing Enter submits the form via the browser's built-in
   implicit-submission behavior — a submit button isn't required for

@@ -13,6 +13,11 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   board. Both control rows are capped to the board's own width.
 - Shortened the button label from "Start session"/"Stop session" to just
   "Start"/"Stop".
+- Reordered the bottom row so the answer input sits between the Start/Stop
+  button and the session timer, centering it in the row instead of having
+  it flush against the button.
+- Renamed the "Time limit (ms)" label to "Per-square time limit (ms)" for
+  clarity.
 
 ## [1.0.0-RC1] - 2026-08-12
 

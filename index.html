@@ -12,7 +12,7 @@
 
 <div id="session">
   <label id="timeLimitLabel">
-    Time limit (ms)
+    Per-square time limit (ms)
     <input type="number" id="timeLimitInput" min="100" step="100" value="1000" />
   </label>
   <div id="scoreCounts">
@@ -34,10 +34,10 @@
 <div id="controls">
   <div id="answerRow">
     <button type="button" id="sessionBtn">Start</button>
-    <div id="sessionTimer">00:00</div>
     <form id="answerForm">
       <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
     </form>
+    <div id="sessionTimer">00:00</div>
   </div>
   <div id="feedback"></div>
 </div>
