@@ -14,6 +14,14 @@ dependencies — just `index.html`, `sqname.css`, and `sqname.js`.
 See [design.md](design.md) for the full design rationale and implementation
 notes, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
+## Credits
+
+The chess piece graphics are Colin M. L. Burnett's "cburnett" set, inlined
+as SVG markup in `sqname.js` and extracted from the
+[python-chess](https://github.com/niklasf/python-chess) library
+(`chess/svg.py`). They're licensed under
+[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+
 ## Running the app directly from GitHub
 You do not need to do the rest of the steps in this document unless you want
 to work on the code.  You can run the app simply by clicking
