@@ -9,7 +9,6 @@ const statStreak = document.getElementById('statStreak');
 const statAcc = document.getElementById('statAcc');
 const statCount = document.getElementById('statCount');
 const flipBtn = document.getElementById('flipBtn');
-const resetBtn = document.getElementById('resetBtn');
 const sessionBtn = document.getElementById('sessionBtn');
 const sessionTimerEl = document.getElementById('sessionTimer');
 const slowThresholdInput = document.getElementById('slowThresholdInput');
@@ -270,15 +269,6 @@ flipBtn.addEventListener('click', () => {
   buildBoard();
   if (target) highlightTarget();
   answerInput.focus();
-});
-
-resetBtn.addEventListener('click', () => {
-  streak = 0;
-  correctCount = 0;
-  attemptCount = 0;
-  feedbackEl.textContent = '';
-  feedbackEl.className = '';
-  updateStats();
 });
 
 // init — idle until Start is pressed

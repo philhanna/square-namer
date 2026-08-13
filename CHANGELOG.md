@@ -26,6 +26,8 @@ This project does not use version numbers; entries are grouped under `[Unrelease
 ### Removed
 - The "Check" button — the answer form has a single field, so Enter already
   submits it via the browser's implicit form submission.
+- The "Reset stats" button — Start/Stop already delimit a session, so a
+  separate mid-session reset serves no purpose.
 
 ## [0.0.0] - 2026-08-12
 - Initial commit: basic square-naming drill (board, target highlighting,
