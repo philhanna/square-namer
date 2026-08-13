@@ -61,6 +61,10 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsOverlayEl = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const showCoordinatesInput = document.getElementById('showCoordinates');
+const pauseBtn = document.getElementById('pauseBtn');
+
+const PAUSE_ICON_SVG = pauseBtn.innerHTML;
+const RESUME_ICON_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 4l13 8-13 8z"/></svg>';
 
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
@@ -73,6 +77,48 @@ let answerTimeout = null;
 let timeLimitMs = DEFAULT_TIME_LIMIT_MS;
 let lastRanks = null;      // ranks/fileOrder from the most recent buildBoard(), for
 let lastFileOrder = null;  // re-rendering coordinate labels without rebuilding the board
+
+let paused = false;
+let pauseStartedAt = null;
+
+// Timeouts created while a session may be paused are tracked here so a
+// pause can freeze their remaining delay and a resume can reschedule it,
+// instead of the real wall-clock time just running out underneath them.
+const activePausableTimeouts = new Set();
+
+function pausableSetTimeout(callback, delayMs) {
+  const t = { callback, remaining: delayMs, handle: null, since: null };
+  t.handle = setTimeout(() => {
+    activePausableTimeouts.delete(t);
+    callback();
+  }, delayMs);
+  t.since = Date.now();
+  activePausableTimeouts.add(t);
+  return t;
+}
+
+function cancelPausableTimeout(t) {
+  if (!t) return;
+  clearTimeout(t.handle);
+  activePausableTimeouts.delete(t);
+}
+
+function pauseAllTimeouts() {
+  activePausableTimeouts.forEach(t => {
+    clearTimeout(t.handle);
+    t.remaining = Math.max(0, t.remaining - (Date.now() - t.since));
+  });
+}
+
+function resumeAllTimeouts() {
+  activePausableTimeouts.forEach(t => {
+    t.since = Date.now();
+    t.handle = setTimeout(() => {
+      activePausableTimeouts.delete(t);
+      t.callback();
+    }, t.remaining);
+  });
+}
 
 function squareColor(file, rank) {
   // a1 is dark. file: 0-7 (a-h), rank: 1-8
@@ -135,8 +181,8 @@ function pickTarget() {
   targetShownAt = Date.now();
   highlightTarget();
 
-  clearTimeout(answerTimeout);
-  answerTimeout = setTimeout(handleTimeout, timeLimitMs);
+  cancelPausableTimeout(answerTimeout);
+  answerTimeout = pausableSetTimeout(handleTimeout, timeLimitMs);
 }
 
 function handleTimeout() {
@@ -166,7 +212,7 @@ function registerMiss(square, guess, elapsedMs) {
   updateLiveCounts();
   answerInput.value = '';
 
-  setTimeout(() => {
+  pausableSetTimeout(() => {
     if (!session || session.endedAt) return;
     if (session.misses.length >= STRIKE_LIMIT) {
       endSession();
@@ -226,20 +272,62 @@ function startSession() {
 
   answerInput.disabled = false;
   sessionBtn.textContent = 'Stop';
+  pauseBtn.disabled = false;
 
   pickTarget();
   answerInput.focus();
   startTimer();
 }
 
+function pauseSession() {
+  if (!session || session.endedAt || paused) return;
+  paused = true;
+  pauseStartedAt = Date.now();
+  stopTimer();
+  pauseAllTimeouts();
+  answerInput.disabled = true;
+  pauseBtn.classList.add('paused');
+  pauseBtn.innerHTML = RESUME_ICON_SVG;
+  pauseBtn.setAttribute('aria-label', 'Resume');
+  pauseBtn.title = 'Resume';
+}
+
+function resumeSession() {
+  if (!session || session.endedAt || !paused) return;
+  const pauseDurationMs = Date.now() - pauseStartedAt;
+  session.startedAt += pauseDurationMs;
+  targetShownAt += pauseDurationMs;
+  paused = false;
+  pauseStartedAt = null;
+
+  resumeAllTimeouts();
+  startTimer();
+  answerInput.disabled = false;
+  answerInput.focus();
+  pauseBtn.classList.remove('paused');
+  pauseBtn.innerHTML = PAUSE_ICON_SVG;
+  pauseBtn.setAttribute('aria-label', 'Pause');
+  pauseBtn.title = 'Pause';
+}
+
 function endSession() {
   if (!session || session.endedAt) return;
-  clearTimeout(answerTimeout);
+  if (paused) {
+    session.startedAt += Date.now() - pauseStartedAt;
+    paused = false;
+    pauseStartedAt = null;
+    pauseBtn.classList.remove('paused');
+    pauseBtn.innerHTML = PAUSE_ICON_SVG;
+    pauseBtn.setAttribute('aria-label', 'Pause');
+    pauseBtn.title = 'Pause';
+  }
+  cancelPausableTimeout(answerTimeout);
   session.endedAt = Date.now();
   stopTimer();
 
   timeLimitInput.disabled = false;
   sessionBtn.textContent = 'Start';
+  pauseBtn.disabled = true;
 
   target = null;
   targetShownAt = null;
@@ -378,7 +466,7 @@ answerForm.addEventListener('submit', (e) => {
     return;
   }
 
-  clearTimeout(answerTimeout);
+  cancelPausableTimeout(answerTimeout);
 
   const answeredAt = Date.now();
   const elapsedMs = answeredAt - targetShownAt;
@@ -391,7 +479,7 @@ answerForm.addEventListener('submit', (e) => {
     flashResult(true);
     updateLiveCounts();
     answerInput.value = '';
-    setTimeout(() => {
+    pausableSetTimeout(() => {
       if (session && !session.endedAt) pickTarget();
     }, 350);
   } else {
@@ -406,6 +494,14 @@ sessionBtn.addEventListener('click', () => {
     beginCountdown();
   } else {
     endSession();
+  }
+});
+
+pauseBtn.addEventListener('click', () => {
+  if (paused) {
+    resumeSession();
+  } else {
+    pauseSession();
   }
 });
 

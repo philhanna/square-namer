@@ -47,13 +47,22 @@ h1 {
   min-width: 3.5em;
   text-align: center;
 }
-#settingsBtn {
+#settingsBtn,
+#pauseBtn {
   flex: 0 0 auto;
   padding: 8px 12px;
   font-size: 1.2rem;
   line-height: 1;
   background: #3a3a3d;
   color: var(--text);
+}
+#pauseBtn svg {
+  display: block;
+  fill: currentColor;
+}
+#pauseBtn.paused {
+  background: var(--warn);
+  color: #1c1c1e;
 }
 
 #statusRow {
