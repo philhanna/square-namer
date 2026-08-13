@@ -7,6 +7,11 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Added
+- A thin coordinate border around the board: rank numbers (1-8) down the
+  left edge, file letters (a-h) along the bottom edge, updating to match
+  whenever the board orientation flips.
+
 ## [1.0.0] - 2026-08-12
 
 First release.

@@ -26,6 +26,8 @@ const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryBodyEl = document.getElementById('summaryBody');
 const summaryCloseBtn = document.getElementById('summaryCloseBtn');
 const countdownOverlayEl = document.getElementById('countdownOverlay');
+const rankLabelsEl = document.getElementById('rankLabels');
+const fileLabelsEl = document.getElementById('fileLabels');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsOverlayEl = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
@@ -68,6 +70,13 @@ function buildBoard() {
       boardEl.appendChild(sq);
     });
   });
+
+  updateCoordinateLabels(ranks, fileOrder);
+}
+
+function updateCoordinateLabels(ranks, fileOrder) {
+  rankLabelsEl.innerHTML = ranks.map(r => `<span>${r}</span>`).join('');
+  fileLabelsEl.innerHTML = fileOrder.map(f => `<span>${f}</span>`).join('');
 }
 
 function pickTarget() {

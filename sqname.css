@@ -107,10 +107,45 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-#boardStage {
-  position: relative;
+#boardFrame {
+  display: grid;
+  grid-template-columns: 1.3em 1fr;
+  grid-template-rows: 1fr 1.3em;
+  grid-template-areas:
+    "ranks board"
+    "corner files";
   width: min(92vw, 420px);
   height: min(92vw, 420px);
+}
+#rankLabels {
+  grid-area: ranks;
+  display: flex;
+  flex-direction: column;
+  /* #board has a 3px border, so its checkerboard is inset from #boardStage's
+     edges by that much; pad to match so labels line up with actual squares. */
+  padding: 3px 0;
+}
+#fileLabels {
+  grid-area: files;
+  display: flex;
+  flex-direction: row;
+  padding: 0 3px;
+}
+#rankLabels span,
+#fileLabels span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+#boardStage {
+  grid-area: board;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 #board {
   display: grid;
