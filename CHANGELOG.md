@@ -28,6 +28,9 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   it flush against the button.
 - Renamed the "Time limit (ms)" label to "Per-square time limit (ms)" for
   clarity.
+- Changed `#timeLimitInput` from `type="number"` to a plain
+  `type="text"` field (with `inputmode="numeric"` for mobile keyboards),
+  removing the browser's up/down spinner arrows.
 
 ## [1.0.0-RC1] - 2026-08-12
 
