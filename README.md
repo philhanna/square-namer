@@ -14,6 +14,11 @@ dependencies — just `index.html`, `sqname.css`, and `sqname.js`.
 See [design.md](design.md) for the full design rationale and implementation
 notes, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
+## Running the app directly from GitHub
+You do not need to do the rest of the steps in this document unless you want
+to work on the code.  You can run the app simply by clicking
+[https://philhanna.github.io/square-namer](https://philhanna.github.io/square-namer)
+
 ## Cloning the repository
 
 ```sh
