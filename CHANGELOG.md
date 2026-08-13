@@ -7,6 +7,8 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-12
+
 ### Added
 - A tabular summary-statistics block in the session summary popup,
   between the header and the per-square table: accuracy %, average time
