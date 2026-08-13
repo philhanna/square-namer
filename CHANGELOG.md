@@ -7,6 +7,16 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 
 ## [Unreleased]
 
+### Changed
+- A wrong answer now ends the session automatically, same as pressing Stop —
+  practice sessions are pass/fail per square instead of continuing past a
+  mistake.
+- Accuracy tracking is gone. The three-metric Streak/Accuracy/Attempts panel
+  is replaced by a single live "Squares" counter, and the summary table
+  drops its Accuracy column (now: Square, Times shown, Avg time, Slowest).
+  The summary header reports how the session ended (`missed h6 (typed g5)`
+  or `stopped manually`).
+
 ## [0.3.0] - 2026-08-12
 
 ### Added

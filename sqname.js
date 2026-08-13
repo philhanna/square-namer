@@ -8,8 +8,6 @@ const boardCaptionBottom = document.getElementById('boardCaptionBottom');
 const answerForm = document.getElementById('answerForm');
 const answerInput = document.getElementById('answerInput');
 const feedbackEl = document.getElementById('feedback');
-const statStreak = document.getElementById('statStreak');
-const statAcc = document.getElementById('statAcc');
 const statCount = document.getElementById('statCount');
 const orientationWhite = document.getElementById('orientationWhite');
 const orientationBlack = document.getElementById('orientationBlack');
@@ -22,11 +20,8 @@ const summaryBodyEl = document.getElementById('summaryBody');
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
 let targetShownAt = null;
-let streak = 0;
-let correctCount = 0;
-let attemptCount = 0;
 
-let session = null;        // { startedAt, endedAt, attempts: [] } while running, or after Stop
+let session = null;        // { startedAt, endedAt, attempts: [], missed } while running, or after it ends
 let timerInterval = null;
 
 function squareColor(file, rank) {
@@ -78,10 +73,8 @@ function highlightTarget() {
   if (el) el.classList.add('target');
 }
 
-function updateStats() {
-  statStreak.textContent = streak;
-  statCount.textContent = attemptCount;
-  statAcc.textContent = attemptCount === 0 ? '—' : Math.round((correctCount / attemptCount) * 100) + '%';
+function updateLiveCount() {
+  statCount.textContent = session ? session.attempts.length : 0;
 }
 
 function flashResult(isCorrect) {
@@ -93,13 +86,10 @@ function flashResult(isCorrect) {
 }
 
 function startSession() {
-  session = { startedAt: Date.now(), endedAt: null, attempts: [] };
-  streak = 0;
-  correctCount = 0;
-  attemptCount = 0;
+  session = { startedAt: Date.now(), endedAt: null, attempts: [], missed: null };
   feedbackEl.textContent = '';
   feedbackEl.className = '';
-  updateStats();
+  updateLiveCount();
 
   sessionSummaryEl.hidden = true;
   answerInput.disabled = false;
@@ -111,7 +101,7 @@ function startSession() {
   startTimer();
 }
 
-function stopSession() {
+function endSession() {
   if (!session || session.endedAt) return;
   session.endedAt = Date.now();
   stopTimer();
@@ -156,45 +146,36 @@ function formatMs(ms) {
 
 function renderSummary() {
   const attempts = session.attempts;
-  const totalAttempts = attempts.length;
-  const totalCorrect = attempts.filter(a => a.correct).length;
-  const overallAccuracy = totalAttempts === 0 ? null : totalCorrect / totalAttempts;
   const duration = session.endedAt - session.startedAt;
+  const outcome = session.missed
+    ? `missed ${session.missed.square} (typed ${session.missed.guess || '(blank)'})`
+    : 'stopped manually';
 
   summaryHeaderEl.textContent =
-    `${formatDuration(duration)} · ${totalAttempts} attempts · ` +
-    (overallAccuracy === null ? '—' : Math.round(overallAccuracy * 100) + '%') + ' accuracy';
+    `${formatDuration(duration)} · ${attempts.length} squares · ${outcome}`;
 
   const perSquare = {};
   attempts.forEach(a => {
     if (!perSquare[a.square]) {
-      perSquare[a.square] = { count: 0, correctCount: 0, totalMs: 0, maxMs: 0 };
+      perSquare[a.square] = { count: 0, totalMs: 0, maxMs: 0 };
     }
     const s = perSquare[a.square];
     s.count++;
-    if (a.correct) s.correctCount++;
     s.totalMs += a.elapsedMs;
     s.maxMs = Math.max(s.maxMs, a.elapsedMs);
   });
 
   const rows = Object.keys(perSquare).map(square => {
     const s = perSquare[square];
-    const accuracy = s.correctCount / s.count;
-    const avgMs = s.totalMs / s.count;
     return {
       square,
       count: s.count,
-      accuracy,
-      avgMs,
+      avgMs: s.totalMs / s.count,
       maxMs: s.maxMs,
-      difficultyScore: avgMs / accuracy,
     };
   });
 
-  rows.sort((a, b) => {
-    if (a.difficultyScore === b.difficultyScore) return 0;
-    return a.difficultyScore > b.difficultyScore ? -1 : 1;
-  });
+  rows.sort((a, b) => b.avgMs - a.avgMs);
 
   summaryBodyEl.innerHTML = '';
   rows.forEach(row => {
@@ -203,7 +184,6 @@ function renderSummary() {
     tr.innerHTML = `
       <td>${row.square}</td>
       <td>${row.count}</td>
-      <td>${Math.round(row.accuracy * 100)}%</td>
       <td>${formatMs(row.avgMs)}</td>
       <td>${formatMs(row.maxMs)}</td>
     `;
@@ -229,35 +209,28 @@ answerForm.addEventListener('submit', (e) => {
 
   const answeredAt = Date.now();
   const elapsedMs = answeredAt - targetShownAt;
-  attemptCount++;
   const isCorrect = guess === target;
 
-  session.attempts.push({
-    square: target,
-    shownAt: targetShownAt,
-    answeredAt,
-    elapsedMs,
-    correct: isCorrect,
-    guess,
-  });
-
   if (isCorrect) {
-    correctCount++;
-    streak++;
+    session.attempts.push({ square: target, shownAt: targetShownAt, answeredAt, elapsedMs });
     feedbackEl.textContent = 'Correct — ' + target;
     feedbackEl.className = 'correct';
   } else {
-    streak = 0;
-    feedbackEl.textContent = `Wrong — that was ${target}, you said ${guess || '(blank)'}`;
+    session.missed = { square: target, guess, elapsedMs };
+    feedbackEl.textContent = `Wrong — that was ${target}, you said ${guess}`;
     feedbackEl.className = 'wrong';
   }
 
   flashResult(isCorrect);
-  updateStats();
+  updateLiveCount();
   answerInput.value = '';
 
   setTimeout(() => {
-    if (session && !session.endedAt) pickTarget();
+    if (isCorrect) {
+      if (session && !session.endedAt) pickTarget();
+    } else {
+      endSession();
+    }
   }, isCorrect ? 350 : 900);
 });
 
@@ -265,7 +238,7 @@ sessionBtn.addEventListener('click', () => {
   if (!session || session.endedAt) {
     startSession();
   } else {
-    stopSession();
+    endSession();
   }
 });
 
@@ -282,4 +255,4 @@ orientationBlack.addEventListener('change', () => setOrientation(true));
 
 // init — idle until Start is pressed
 buildBoard();
-updateStats();
+updateLiveCount();
