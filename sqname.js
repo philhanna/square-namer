@@ -1,3 +1,5 @@
+const SLOW_THRESHOLD_MS = 500;
+
 const files = ['a','b','c','d','e','f','g','h'];
 const boardEl = document.getElementById('board');
 const boardCaptionTop = document.getElementById('boardCaptionTop');
@@ -8,10 +10,10 @@ const feedbackEl = document.getElementById('feedback');
 const statStreak = document.getElementById('statStreak');
 const statAcc = document.getElementById('statAcc');
 const statCount = document.getElementById('statCount');
-const flipBtn = document.getElementById('flipBtn');
+const orientationWhite = document.getElementById('orientationWhite');
+const orientationBlack = document.getElementById('orientationBlack');
 const sessionBtn = document.getElementById('sessionBtn');
 const sessionTimerEl = document.getElementById('sessionTimer');
-const slowThresholdInput = document.getElementById('slowThresholdInput');
 const sessionSummaryEl = document.getElementById('sessionSummary');
 const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryBodyEl = document.getElementById('summaryBody');
@@ -24,7 +26,6 @@ let correctCount = 0;
 let attemptCount = 0;
 
 let session = null;        // { startedAt, endedAt, attempts: [] } while running, or after Stop
-let slowThresholdMs = 600;
 let timerInterval = null;
 
 function squareColor(file, rank) {
@@ -91,7 +92,6 @@ function flashResult(isCorrect) {
 }
 
 function startSession() {
-  slowThresholdMs = parseInt(slowThresholdInput.value, 10) || 0;
   session = { startedAt: Date.now(), endedAt: null, attempts: [] };
   streak = 0;
   correctCount = 0;
@@ -102,7 +102,6 @@ function startSession() {
 
   sessionSummaryEl.hidden = true;
   answerInput.disabled = false;
-  slowThresholdInput.disabled = true;
   sessionBtn.textContent = 'Stop session';
 
   buildBoard();
@@ -117,7 +116,6 @@ function stopSession() {
   stopTimer();
 
   answerInput.disabled = true;
-  slowThresholdInput.disabled = false;
   sessionBtn.textContent = 'Start session';
 
   target = null;
@@ -200,7 +198,7 @@ function renderSummary() {
   summaryBodyEl.innerHTML = '';
   rows.forEach(row => {
     const tr = document.createElement('tr');
-    if (row.avgMs > slowThresholdMs) tr.classList.add('slow');
+    if (row.avgMs > SLOW_THRESHOLD_MS) tr.classList.add('slow');
     tr.innerHTML = `
       <td>${row.square}</td>
       <td>${row.count}</td>
@@ -263,13 +261,16 @@ sessionBtn.addEventListener('click', () => {
   }
 });
 
-flipBtn.addEventListener('click', () => {
-  flipped = !flipped;
-  flipBtn.textContent = flipped ? 'Flip board (play as White)' : 'Flip board (play as Black)';
+function setOrientation(newFlipped) {
+  if (flipped === newFlipped) return;
+  flipped = newFlipped;
   buildBoard();
   if (target) highlightTarget();
   answerInput.focus();
-});
+}
+
+orientationWhite.addEventListener('change', () => setOrientation(false));
+orientationBlack.addEventListener('change', () => setOrientation(true));
 
 // init — idle until Start is pressed
 buildBoard();

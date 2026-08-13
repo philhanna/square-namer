@@ -13,10 +13,10 @@
 <div id="session">
   <button type="button" id="sessionBtn">Start session</button>
   <div id="sessionTimer">00:00</div>
-  <label id="slowThresholdLabel">
-    Slow threshold (ms)
-    <input type="number" id="slowThresholdInput" min="0" step="50" value="600" />
-  </label>
+  <div id="orientation">
+    <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
+    <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
+  </div>
 </div>
 
 <div class="stats">
@@ -36,9 +36,6 @@
     <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
   </form>
   <div id="feedback"></div>
-  <div id="toggles">
-    <button type="button" class="secondary" id="flipBtn">Flip board (play as Black)</button>
-  </div>
 </div>
 
 <div id="sessionSummary" hidden>

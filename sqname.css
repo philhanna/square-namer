@@ -60,23 +60,19 @@ h1 {
   min-width: 3.5em;
   text-align: center;
 }
-#slowThresholdLabel {
+#orientation {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-#slowThresholdInput {
-  width: 5em;
-  font-size: 0.9rem;
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid #555;
-  background: #111;
+  gap: 12px;
+  font-size: 0.85rem;
   color: var(--text);
 }
-#slowThresholdInput:disabled { opacity: 0.5; }
+#orientation label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
 
 #boardWrap {
   display: flex;
@@ -154,11 +150,6 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-button.secondary {
-  background: #3a3a3d;
-  color: var(--text);
-  font-weight: 500;
-}
 #feedback {
   min-height: 22px;
   font-size: 0.95rem;
@@ -166,12 +157,6 @@ button.secondary {
 }
 #feedback.correct { color: var(--correct); }
 #feedback.wrong { color: var(--wrong); }
-
-#toggles {
-  display: flex;
-  gap: 10px;
-  margin-top: 6px;
-}
 
 #sessionSummary {
   margin-top: 28px;
