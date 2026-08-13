@@ -10,18 +10,20 @@
 <h1>Chess Square Namer</h1>
 <div class="subtitle">A square lights up — type its name and hit Enter.</div>
 
-<div id="session">
-  <label id="timeLimitLabel">
-    Per-square time limit (ms)
-    <input type="text" inputmode="numeric" pattern="[0-9]*" id="timeLimitInput" value="5000" />
-  </label>
+<div id="topRow">
+  <button type="button" id="sessionBtn">Start</button>
+  <form id="answerForm">
+    <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
+  </form>
+  <div id="sessionTimer">00:00</div>
+  <button type="button" id="settingsBtn" aria-label="Settings" title="Settings">⚙</button>
+</div>
+
+<div id="statusRow">
+  <div id="feedback"></div>
   <div id="scoreCounts">
     <span class="scoreItem"><span class="scoreVal right" id="statRight">0</span><span class="scoreLbl">right</span></span>
     <span class="scoreItem"><span class="scoreVal wrong" id="statWrong">0</span><span class="scoreLbl">wrong</span></span>
-  </div>
-  <div id="orientation">
-    <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
-    <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
   </div>
 </div>
 
@@ -34,15 +36,20 @@
   <div class="boardCaption" id="boardCaptionBottom">White</div>
 </div>
 
-<div id="controls">
-  <div id="answerRow">
-    <button type="button" id="sessionBtn">Start</button>
-    <form id="answerForm">
-      <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
-    </form>
-    <div id="sessionTimer">00:00</div>
+<div id="settingsOverlay" hidden>
+  <div id="settingsPanel">
+    <h2>Settings</h2>
+    <label id="timeLimitLabel">
+      Per-square time limit (ms)
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="timeLimitInput" value="5000" />
+    </label>
+    <div id="orientation">
+      <span class="orientationTitle">Board orientation</span>
+      <label><input type="radio" name="orientation" id="orientationWhite" checked> White</label>
+      <label><input type="radio" name="orientation" id="orientationBlack"> Black</label>
+    </div>
+    <button type="button" id="settingsCloseBtn">Close</button>
   </div>
-  <div id="feedback"></div>
 </div>
 
 <div id="summaryOverlay" hidden>

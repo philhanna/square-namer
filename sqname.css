@@ -32,13 +32,12 @@ h1 {
   margin-bottom: 18px;
   text-align: center;
 }
-#session {
+#topRow {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 10px;
+  width: min(92vw, 420px);
+  margin-bottom: 10px;
 }
 #sessionTimer {
   font-variant-numeric: tabular-nums;
@@ -48,27 +47,32 @@ h1 {
   min-width: 3.5em;
   text-align: center;
 }
-#timeLimitLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-#timeLimitInput {
-  width: 5em;
-  font-size: 0.9rem;
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid #555;
-  background: #111;
+#settingsBtn {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: #3a3a3d;
   color: var(--text);
 }
-#timeLimitInput:disabled { opacity: 0.5; }
+
+#statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: min(92vw, 420px);
+  margin-bottom: 14px;
+}
+#statusRow #feedback {
+  flex: 1;
+  min-width: 0;
+}
 
 #scoreCounts {
   display: flex;
   gap: 12px;
+  flex: 0 0 auto;
 }
 #scoreCounts .scoreItem {
   display: flex;
@@ -87,20 +91,6 @@ h1 {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-}
-
-#orientation {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.85rem;
-  color: var(--text);
-}
-#orientation label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
 }
 
 #boardWrap {
@@ -166,20 +156,6 @@ h1 {
 .sq.flash-correct { background: var(--correct) !important; }
 .sq.flash-wrong { background: var(--wrong) !important; }
 
-#controls {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: min(92vw, 420px);
-}
-#answerRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
 #answerForm {
   display: flex;
   gap: 8px;
@@ -222,6 +198,7 @@ button:disabled {
 #feedback.warn { color: var(--warn); }
 #feedback.wrong { color: var(--wrong); }
 
+#settingsOverlay,
 #summaryOverlay {
   position: fixed;
   inset: 0;
@@ -232,11 +209,68 @@ button:disabled {
   padding: 16px;
   z-index: 100;
 }
+#settingsOverlay[hidden],
 #summaryOverlay[hidden] { display: none; }
 
 @keyframes summaryPopIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+#settingsPanel {
+  width: min(92vw, 280px);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: summaryPopIn 180ms ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+#settingsPanel h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+#settingsPanel #timeLimitLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+#settingsPanel #timeLimitInput {
+  width: 100%;
+  font-size: 0.95rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #111;
+  color: var(--text);
+}
+#settingsPanel #timeLimitInput:disabled { opacity: 0.5; }
+#settingsPanel #orientation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#settingsPanel .orientationTitle {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+#settingsPanel #orientation label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+#settingsCloseBtn {
+  width: 100%;
 }
 #sessionSummary {
   width: min(92vw, 420px);

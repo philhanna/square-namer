@@ -195,30 +195,15 @@ wrong — if it matches `/^[a-h][1-8]$/`, a well-formed square name.
 
 ### Controls
 
-There are two control rows, both capped to the board's own width
-(`min(92vw, 420px)`) so neither ever runs wider than the board itself.
+Everything above the board is now a single compact row plus a thin
+status line, both capped to the board's own width (`min(92vw, 420px)`)
+so neither ever runs wider than the board itself. Settings that apply
+to the session as a whole (time limit, orientation) were pulled out
+into a separate popup to cut clutter from the main view — see
+"Settings popup" below.
 
-**Top row (`#session`, above the board)** — settings that apply to the
-session as a whole, not the current answer:
-
-- A **time limit** input (`#timeLimitInput`, milliseconds, default
-  1000), labeled "Per-square time limit (ms)" (`#timeLimitLabel`). Like the old
-  slow-threshold input, it's editable only while idle and disabled for
-  the duration of a running session, so a session's timing data is
-  never measured against a limit that changed partway through.
-- **Live right/wrong counts** (`#scoreCounts`, holding `#statRight` /
-  `#statWrong`), immediately to the left of the orientation radios.
-  The right count is styled green (`var(--correct)`), the wrong count
-  red (`var(--wrong)`), each with a small "right"/"wrong" label
-  underneath, mirroring the old `.stats` panel's val/label look but
-  inline in the row instead of a separate block below it.
-- **Board orientation**, set by two mutually exclusive radio buttons
-  (`#orientationWhite` / `#orientationBlack`) — not a single "Flip
-  board" toggle button. Selecting one directly sets which color
-  occupies the bottom row.
-
-**Bottom row (`#answerRow`, inside `#controls`, alongside the board)**
-— the moment-to-moment answering controls:
+**`#topRow`, directly above the board** — the moment-to-moment
+answering controls, in this order:
 
 - **Start/Stop button** (`#sessionBtn`) — single toggle button. Label
   switches between "Start" and "Stop". Sits on the left end of the row.
@@ -226,25 +211,73 @@ session as a whole, not the current answer:
   fills the remaining width and sits visually centered between the
   Start/Stop button and the session timer.
 - A small **session timer** (`#sessionTimer`) showing elapsed
-  wall-clock time, updated once per second while running. Sits on the
-  right end of the row — deliberately placed after `#answerForm` in
-  the markup (not right after the button) so the flexible answer
-  field lands in the middle of the row rather than off to one side.
+  wall-clock time, updated once per second while running. Placed after
+  `#answerForm` in the markup (not right after the button) so the
+  flexible answer field lands in the middle of the row rather than off
+  to one side.
+- A **⚙ settings button** (`#settingsBtn`) on the far right end of the
+  row, opening the settings popup. Styled as a neutral square icon
+  button (dark gray, not the primary yellow), distinct from the
+  Start/Stop button.
 - **No Check button.** `#answerForm` has exactly one text field, so
   pressing Enter submits the form via the browser's built-in
   implicit-submission behavior — a submit button isn't required for
   that to work. The button is removed from the markup entirely.
+- While idle, `#answerForm` is disabled and the board shows no target
+  square (all squares in normal light/dark colors).
+
+**`#statusRow`, between `#topRow` and the board** — a thin line with
+`justify-content: space-between`:
+
+- `#feedback` on the left (`flex: 1`), unchanged in behavior — still
+  just shows "Correct — e4" / "Wrong — …" / the malformed-guess
+  warning.
+- **Live right/wrong counts** (`#scoreCounts`, holding `#statRight` /
+  `#statWrong`) on the right, `flex: 0 0 auto` so they stay compact.
+  The right count is styled green (`var(--correct)`), the wrong count
+  red (`var(--wrong)`), each with a small "right"/"wrong" label
+  underneath.
 - **No Reset stats button.** The live right/wrong counts are read
   directly from `session.attempts.length` / `session.misses.length`,
   and starting a new session already resets them — there's nothing
   left for a separate reset action to do.
-- While idle, `#answerForm` is disabled and the board shows no target
-  square (all squares in normal light/dark colors).
 
 Small centered **"White"/"Black" captions** above and below the board
 (`#boardCaptionTop` / `#boardCaptionBottom`) swap whenever orientation
-changes, so it's always clear which side is which regardless of which
-radio (in the row above) is currently selected.
+changes, so it's always clear which side is which even though the
+orientation control itself now lives inside the settings popup, out of
+the main view.
+
+### Settings popup
+
+`#settingsOverlay` (fixed, full-viewport backdrop, `z-index: 100`) and
+its inner `#settingsPanel` card follow the exact same pattern as the
+session-summary popup — same backdrop dimming, same `summaryPopIn`
+scale/fade-in animation, opened/closed the same way (button + backdrop
+click) — but narrower (`min(92vw, 280px)` vs. 420px) since it holds far
+less content, and it's opened by `#settingsBtn` rather than appearing
+automatically. It contains, stacked vertically for compactness:
+
+- The **time limit** input (`#timeLimitInput`, milliseconds, default
+  1000), labeled "Per-square time limit (ms)" (`#timeLimitLabel`). Same
+  element, same behavior as before the popup existed — still editable
+  only while idle and disabled for the duration of a running session —
+  just relocated. `#timeLimitLabel`/`#timeLimitInput` are restyled
+  (`#settingsPanel #timeLimitLabel { flex-direction: column; }`, full-
+  width input) for a vertical popup instead of the old inline row.
+- **Board orientation**, under a small "BOARD ORIENTATION" caption,
+  set by the same two mutually exclusive radio buttons
+  (`#orientationWhite` / `#orientationBlack`) as before — not a single
+  "Flip board" toggle button. Selecting one directly sets which color
+  occupies the bottom row; the popup doesn't need to be closed for this
+  to take effect, and doesn't auto-close when you do it.
+- A **Close** button (`#settingsCloseBtn`), full-width.
+
+Opening/closing the settings popup doesn't pause or otherwise interact
+with a running session or an in-progress countdown — it's purely a
+view on top of `#timeLimitInput`/the orientation radios, which already
+know how to reflect and enforce their own idle/running-disabled state
+regardless of which container they're rendered inside.
 
 ### Pre-session countdown
 
@@ -407,6 +440,16 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 - The Close button and clicks on the overlay backdrop (but not on the
   card itself — checked via `e.target === summaryOverlayEl`) both just
   set `summaryOverlayEl.hidden = true`.
+- `#settingsBtn`/`#settingsOverlay`/`#settingsCloseBtn` follow the
+  identical show/hide/backdrop-click pattern as the summary popup:
+  `settingsBtn` click sets `settingsOverlayEl.hidden = false`;
+  `settingsCloseBtn` click and backdrop clicks (`e.target ===
+  settingsOverlayEl`) both set it back to `true`. No session-state
+  interaction at all — `#timeLimitInput` and the orientation radios
+  it contains already own their own enable/disable and change
+  behavior regardless of which DOM container they render inside, so
+  moving them into the popup required no logic changes, just a
+  location change.
 - `setOrientation(newFlipped)` (called from the radios' `change`
   handlers): updates `flipped`, rebuilds the board (which also updates
   the White/Black captions via `updateBoardCaptions()`), and
@@ -476,3 +519,24 @@ h6 (typed g5), b3 (timed out), e4 (typed d4)
 - **`#sessionBtn` disabled during the countdown**: prevents a double
   click from starting two overlapping countdowns/sessions. It's the
   only place the button is disabled outside the countdown itself.
+- **Settings pulled into a popup, not left inline**: the time limit and
+  orientation controls don't need to be visible while actually playing
+  — they're configured once and rarely touched mid-session — so hiding
+  them behind a `#settingsBtn` gear icon shrinks the always-visible
+  chrome down to just the answer row and a thin status line, leaving
+  more of the view to the board itself.
+- **Answer row moved above the board, not left below it**: puts the
+  input the player is actually typing into right next to the title,
+  closer to eye level and immediately visible without scrolling past
+  the board first; the board itself becomes the single large element
+  below it rather than being sandwiched between two control rows.
+- **Gear icon on the right, not the left**: keeps the primary
+  Start/Stop action anchored on the left (consistent with reading
+  order and where it's always been) while the secondary, rarely-used
+  settings action sits at the opposite end — the two are never
+  confusable at a glance.
+- **Settings popup doesn't pause anything**: opening it mid-countdown
+  or mid-session is allowed and inert — it's a read/adjust view over
+  state that already knows how to protect itself
+  (`#timeLimitInput.disabled`), not a modal that needs to coordinate
+  with the drill loop.

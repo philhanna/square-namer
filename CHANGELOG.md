@@ -16,6 +16,9 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   square lights up — the countdown overlay disappearing and a target
   appearing at the same instant felt disorienting, even though the
   per-square timer itself was already getting its full configured limit.
+- A **Settings popup** (gear icon, `#settingsBtn`), holding the per-square
+  time limit input and the White/Black orientation radios — the same
+  overlay/backdrop pattern as the session summary popup, just narrower.
 
 ### Changed
 - Moved the Start/Stop button and the session timer down into the bottom
@@ -31,6 +34,15 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
 - Changed `#timeLimitInput` from `type="number"` to a plain
   `type="text"` field (with `inputmode="numeric"` for mobile keyboards),
   removing the browser's up/down spinner arrows.
+- **Reworked the top-of-page layout to cut clutter**: the per-square time
+  limit input and orientation radios moved out of the always-visible
+  settings row into the new Settings popup. The answer row (Start/Stop,
+  answer input, session timer) moved from below the board to a single
+  row directly above it, with the settings gear on the right. The
+  right/wrong counts moved into a thin status line between that row and
+  the board, alongside the feedback message. Net effect: everything
+  above the board is now one control row plus one status line, instead
+  of a settings row, a stats row, the board, and a controls row below it.
 
 ## [1.0.0-RC1] - 2026-08-12
 

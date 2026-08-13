@@ -26,6 +26,9 @@ const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryBodyEl = document.getElementById('summaryBody');
 const summaryCloseBtn = document.getElementById('summaryCloseBtn');
 const countdownOverlayEl = document.getElementById('countdownOverlay');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsOverlayEl = document.getElementById('settingsOverlay');
+const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 
 let flipped = false;   // false = White at bottom (standard), true = Black at bottom
 let target = null;     // current correct square, e.g. "e4"
@@ -333,6 +336,18 @@ summaryCloseBtn.addEventListener('click', () => {
 
 summaryOverlayEl.addEventListener('click', (e) => {
   if (e.target === summaryOverlayEl) summaryOverlayEl.hidden = true;
+});
+
+settingsBtn.addEventListener('click', () => {
+  settingsOverlayEl.hidden = false;
+});
+
+settingsCloseBtn.addEventListener('click', () => {
+  settingsOverlayEl.hidden = true;
+});
+
+settingsOverlayEl.addEventListener('click', (e) => {
+  if (e.target === settingsOverlayEl) settingsOverlayEl.hidden = true;
 });
 
 // init — idle until Start is pressed
