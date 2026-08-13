@@ -44,6 +44,40 @@ h1 {
 .stats .val { font-size: 1.2rem; font-weight: 700; }
 .stats .lbl { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
 
+#session {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#sessionTimer {
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 3.5em;
+  text-align: center;
+}
+#slowThresholdLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+#slowThresholdInput {
+  width: 5em;
+  font-size: 0.9rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #111;
+  color: var(--text);
+}
+#slowThresholdInput:disabled { opacity: 0.5; }
+
 #board {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -91,6 +125,7 @@ h1 {
   letter-spacing: 0.05em;
 }
 #answerInput:focus { outline: 2px solid var(--highlight); }
+#answerInput:disabled { opacity: 0.5; }
 button {
   font-size: 1rem;
   padding: 10px 16px;
@@ -100,6 +135,10 @@ button {
   color: #1c1c1e;
   font-weight: 600;
   cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 button.secondary {
   background: #3a3a3d;
@@ -118,4 +157,43 @@ button.secondary {
   display: flex;
   gap: 10px;
   margin-top: 6px;
+}
+
+#sessionSummary {
+  margin-top: 28px;
+  width: min(92vw, 420px);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+#sessionSummary h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+#summaryHeader {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+#summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+#summaryTable th, #summaryTable td {
+  padding: 6px 8px;
+  text-align: center;
+  border-bottom: 1px solid #3a3a3d;
+}
+#summaryTable th {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+#summaryTable tbody tr.slow {
+  color: var(--wrong);
+  font-weight: 600;
 }

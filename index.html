@@ -10,6 +10,15 @@
 <h1>Square Namer</h1>
 <div class="subtitle">A square lights up — type its name and hit Enter.</div>
 
+<div id="session">
+  <button type="button" id="sessionBtn">Start session</button>
+  <div id="sessionTimer">00:00</div>
+  <label id="slowThresholdLabel">
+    Slow threshold (ms)
+    <input type="number" id="slowThresholdInput" min="0" step="50" value="600" />
+  </label>
+</div>
+
 <div class="stats">
   <div><div class="val" id="statStreak">0</div><div class="lbl">Streak</div></div>
   <div><div class="val" id="statAcc">—</div><div class="lbl">Accuracy</div></div>
@@ -20,14 +29,31 @@
 
 <div id="controls">
   <form id="answerForm">
-    <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" />
-    <button type="submit">Check</button>
+    <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" disabled />
+    <button type="submit" disabled>Check</button>
   </form>
   <div id="feedback"></div>
   <div id="toggles">
     <button type="button" class="secondary" id="flipBtn">Flip board (play as Black)</button>
     <button type="button" class="secondary" id="resetBtn">Reset stats</button>
   </div>
+</div>
+
+<div id="sessionSummary" hidden>
+  <h2>Session summary</h2>
+  <div id="summaryHeader"></div>
+  <table id="summaryTable">
+    <thead>
+      <tr>
+        <th>Square</th>
+        <th>Attempts</th>
+        <th>Accuracy</th>
+        <th>Avg time</th>
+        <th>Slowest</th>
+      </tr>
+    </thead>
+    <tbody id="summaryBody"></tbody>
+  </table>
 </div>
 
 <script src="sqname.js"></script>
