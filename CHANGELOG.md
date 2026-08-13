@@ -14,6 +14,13 @@ Versions are tracked as git tags (no `vN.N.N` prefix).
   and the 3 least difficult squares. Values are column-aligned rather
   than run into sentences, and the difficulty lists show just the
   square names (their average time is already in the table below).
+- `README.md`, covering what the app is, how to clone it, and how to run
+  it (no build step — just open `index.html` or serve the directory).
+- `LICENSE` (MIT).
+
+### Changed
+- Moved `docs/design.md` to `design.md` at the repo root and removed the
+  now-empty `docs/` directory.
 
 ## [1.2.0] - 2026-08-12
 
