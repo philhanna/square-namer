@@ -2,7 +2,7 @@
 
 ## Problem
 
-Square Namer drills squares continuously with no notion of a practice
+Chess Square Namer drills squares continuously with no notion of a practice
 session: there's no way to say "here's a block of practice," measure
 how long each square takes to answer, or see which squares are
 consistently slow or error-prone.
