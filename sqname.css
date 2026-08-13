@@ -36,7 +36,12 @@ h1 {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: min(92vw, 420px);
+  /* #boardFrame reserves a 1.3em rank-label gutter before the board itself
+     (grid-template-columns: 1.3em 1fr), so the board's left edge sits that
+     far right of #boardWrap's outer edge. Match it here so this row starts
+     no further left than the board actually does. */
+  width: calc(min(92vw, 420px) - 1.3em);
+  margin-left: 1.3em;
   margin-bottom: 10px;
 }
 #sessionTimer {
@@ -70,7 +75,10 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  width: min(92vw, 420px);
+  /* Match #topRow: inset by the board's 1.3em rank-label gutter so this
+     row starts no further left than the board actually does. */
+  width: calc(min(92vw, 420px) - 1.3em);
+  margin-left: 1.3em;
   margin-bottom: 14px;
 }
 #statusRow #feedback {
