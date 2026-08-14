@@ -229,7 +229,10 @@ pauses, or resumes.
   `#sessionBtn`/`#pauseBtn` actions on the left): `#sessionBtn`,
   `#pauseBtn`, `#answerForm`, `#sessionTimer`, `#voiceBtn`,
   `#settingsBtn`.
-- Icon: 🎙, styled like `#settingsBtn` (neutral gray square button) when
+- Icon: an inline SVG microphone glyph (same pattern as `#pauseBtn`'s
+  SVG, chosen over the 🎙 emoji because emoji-font availability varies
+  across desktop browsers/OSes and could render as a flat, illegible
+  glyph), styled like `#settingsBtn` (neutral gray square button) when
   off. A `.listening` class swaps it to a distinguishable active state
   — e.g. a red pulsing dot/border via a CSS animation, so the player
   can tell at a glance whether the mic is live without needing to

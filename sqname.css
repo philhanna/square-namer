@@ -62,7 +62,8 @@ h1 {
   background: #3a3a3d;
   color: var(--text);
 }
-#pauseBtn svg {
+#pauseBtn svg,
+#voiceBtn svg {
   display: block;
   fill: currentColor;
 }

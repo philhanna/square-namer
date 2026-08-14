@@ -22,7 +22,12 @@
     <input id="answerInput" type="text" maxlength="2" autocomplete="off" autocapitalize="off" placeholder="e.g. e4" />
   </form>
   <div id="sessionTimer">00:00</div>
-  <button type="button" id="voiceBtn" aria-label="Voice input" title="Voice input" aria-pressed="false" hidden>🎙</button>
+  <button type="button" id="voiceBtn" aria-label="Voice input" title="Voice input" aria-pressed="false" hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <rect x="9" y="2" width="6" height="12" rx="3"/>
+      <path d="M6 11a1 1 0 0 1 2 0 4 4 0 0 0 8 0 1 1 0 0 1 2 0 6 6 0 0 1-5 5.917V19h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.083A6 6 0 0 1 6 11Z"/>
+    </svg>
+  </button>
   <button type="button" id="settingsBtn" aria-label="Settings" title="Settings">⚙</button>
 </div>
 
