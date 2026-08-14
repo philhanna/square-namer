@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions are tracked as git tags (no `vN.N.N` prefix).
 
+## [2.0.0] - 2026-08-13
+
+### Added
+- Voice input mode (🎙 button, Web Speech API): square names and the
+  start/stop/pause/resume commands can now be spoken instead of typed,
+  addressing the mobile on-screen keyboard covering the board while
+  answering. Recognized speech routes through the same
+  form-submit/button-click paths as manual input rather than
+  duplicating game logic (issue #1).
+- Pause/Resume control (`#pauseBtn`) that freezes all session timers.
+  The per-square timeout, post-answer transition delays, and session
+  clock all route through a pausable-timeout wrapper (or have their
+  anchor timestamps shifted forward on resume), so pausing mid-drill
+  can't silently burn down the timer or count paused wall-clock time
+  as elapsed/answer time (issue #3).
+- The board now renders the opening chess position with inlined
+  python-chess piece art. Pieces stay pinned to their real squares so
+  orientation flips still work, and the SVG markup is inlined (not
+  `<img src>`) so it renders when `index.html` is opened directly via
+  `file://`, which Chrome otherwise blocks.
+- `voice-input.md`, a design doc for the voice input feature.
+- A README section on running the app directly from GitHub.
+
+### Fixed
+- The top row could overflow past the board's right edge:
+  `#answerInput` had `flex: 1` but no `min-width: 0`, so its
+  browser-default intrinsic minimum width overrode `flex-shrink` and
+  let it balloon past its container (issue #3).
+- `#topRow` and `#statusRow` were sized to `#boardWrap`'s outer edge
+  rather than the board's actual left edge, which sits 1.3em further
+  right behind the rank-label gutter, so both rows stuck out past
+  where the board actually starts (issue #3).
+- `answerInput.focus()` calls (in `startSession`/`resumeSession`/
+  `endSession`/`setOrientation`) were reopening the Android on-screen
+  keyboard during voice sessions. Those calls are now guarded against
+  an active voice session, and the input is blurred when voice input
+  is toggled on.
+
 ## [1.3.1] - 2026-08-12
 
 ### Fixed
