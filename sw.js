@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sqname-v1';
+const CACHE_NAME = 'sqname-v2';
 const APP_SHELL = [
   './',
   './index.html',
