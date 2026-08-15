@@ -9,10 +9,13 @@ comes first. When a session ends, a summary shows your accuracy, average
 answer time, and your most/least difficult squares.
 
 It's a single-page app with no backend, no build step, and no external
-dependencies — just `index.html`, `sqname.css`, and `sqname.js`.
+dependencies — just `index.html`, `sqname.css`, and `sqname.js`. It's also
+installable as a PWA (add it to your home screen / app dock) and works
+fully offline once loaded once, via `manifest.webmanifest` and `sw.js`.
 
 See [design.md](design.md) for the full design rationale and implementation
-notes, and [CHANGELOG.md](CHANGELOG.md) for release history.
+notes, [docs/pwa-design.md](docs/pwa-design.md) for the PWA conversion, and
+[CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Credits
 
@@ -54,3 +57,7 @@ python3 -m http.server 8000
 ```
 
 and visit `http://localhost:8000/`.
+
+Note: the service worker (`sw.js`) only registers when the app is served
+over `http://`/`https://` — opening `index.html` directly via `file://`
+still runs the app fine, just without offline caching or install support.

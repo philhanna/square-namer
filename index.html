@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <title>Chess Square Namer — Chess Coordinate Drill</title>
 <link rel="stylesheet" href="sqname.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c1c1e">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 
@@ -97,6 +102,13 @@
 </div>
 
 <script src="sqname.js"></script>
+<script>
+if ('serviceWorker' in window.navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
 
 </body>
 </html>

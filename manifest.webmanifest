@@ -1,0 +1,16 @@
+{
+  "name": "Chess Square Namer",
+  "short_name": "Sq. Namer",
+  "description": "A square lights up — type its name and hit Enter. A chess coordinate drill modeled on Puzzle Rush.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c1c1e",
+  "theme_color": "#1c1c1e",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
