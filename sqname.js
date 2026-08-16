@@ -389,7 +389,7 @@ function renderSummary() {
   const endedBy = misses.length >= STRIKE_LIMIT ? 'struck out' : 'stopped manually';
 
   summaryHeaderEl.innerHTML =
-    `${formatDuration(duration)} · ${attempts.length} right · ${misses.length} wrong · ${endedBy}` +
+    `${formatDuration(duration)} · ${endedBy}` +
     (misses.length ? `<br>${misses.map(describeMiss).join(', ')}` : '');
 
   const perSquare = {};
