@@ -388,8 +388,11 @@ function renderSummary() {
   const duration = session.endedAt - session.startedAt;
   const endedBy = misses.length >= STRIKE_LIMIT ? 'struck out' : 'stopped manually';
 
+  const total = attempts.length + misses.length;
+  const accuracyPct = total ? Math.round((attempts.length / total) * 100) : 0;
+
   summaryHeaderEl.innerHTML =
-    `${formatDuration(duration)} · ${attempts.length} right · ${misses.length} wrong · ${endedBy}` +
+    `${formatDuration(duration)} · ${attempts.length} of ${total} (${accuracyPct}%) · ${endedBy}` +
     (misses.length ? `<br>${misses.map(describeMiss).join(', ')}` : '');
 
   const perSquare = {};
