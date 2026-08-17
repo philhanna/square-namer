@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions are tracked as git tags (no `vN.N.N` prefix).
 
+## [2.2.0] - 2026-08-17
+
+### Added
+- Persistent session log: every completed session (with at least one
+  attempt or miss) is now appended automatically to a `localStorage`-backed
+  log, capturing timestamp, duration, settings, input device, and full
+  stats, so performance can be tracked across sessions.
+- Settings panel gained a "Session Log" section with **Export** (downloads
+  the full log as `.json`) and **Clear** (wipes it after a confirm prompt)
+  controls, both disabled while the log is empty.
+
 ## [2.1.0] - 2026-08-17
 
 ### Added
