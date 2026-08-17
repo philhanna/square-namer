@@ -43,7 +43,7 @@ installed one:
 
 ## Non-goals
 
-- **No offline voice input.** [voice-input.md](../voice-input.md) already
+- **No offline voice input.** [voice-input.md](voice-input.md) already
   documents that Web Speech API recognition (at least in Chrome) sends
   audio to a remote server — that's a browser-implementation constraint
   this project has no control over, PWA or not. Voice input continues to
@@ -261,7 +261,7 @@ if ('serviceWorker' in window.navigator) {
   support (a shrinking but nonzero set) fall through to exactly today's
   behavior — plain network fetches, no offline capability, no install
   prompt. This mirrors the existing "degrade invisibly" principle
-  [voice-input.md](../voice-input.md) already established for
+  [voice-input.md](voice-input.md) already established for
   `SpeechRecognition` support.
 - Registered after `load`, not at the top of the script, so it doesn't
   compete with the app's own initial render for the main thread during

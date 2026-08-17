@@ -40,7 +40,7 @@ defeats the drill.
   that means audio is sent to Google's servers; see "Browser support"
   below).
 - No changes to scoring, timing, or session-lifecycle rules from
-  [design.md](docs/design.md). Voice is purely an alternate way of
+  [design.md](design.md). Voice is purely an alternate way of
   performing the same two actions a player can already perform by
   hand.
 
@@ -211,7 +211,7 @@ pauses, or resumes.
   invalid, the same way it prevents an invalid manual click.
 - **Recognized square**: `answerInput.value` is set to the parsed
   square and `answerForm.requestSubmit()` is called. From there,
-  everything is unchanged from [design.md](docs/design.md) — correct/wrong/
+  everything is unchanged from [design.md](design.md) — correct/wrong/
   malformed handling, timing, misses, all identical to a typed answer.
 - **Unresolved utterance** (neither a command nor a square): silently
   ignored — no warning shown. Voice recognition produces far more
@@ -389,4 +389,4 @@ but as a starting point:
   problem similar to the one voice is meant to solve.
 - **No accuracy percentage or scoring changes**: voice is purely an
   input method swap. Every scoring, timing, and session-lifecycle rule
-  from [design.md](docs/design.md) is unchanged.
+  from [design.md](design.md) is unchanged.

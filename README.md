@@ -19,7 +19,7 @@ fully offline once loaded once, via `manifest.webmanifest` and `sw.js`
 recognition is cloud-based).
 
 See [docs/design.md](docs/design.md) for the full design rationale and
-implementation notes, [voice-input.md](voice-input.md) for the voice input
+implementation notes, [voice-input.md](docs/voice-input.md) for the voice input
 feature, [docs/session-tracker.md](docs/session-tracker.md) for the
 persistent session log, [docs/pwa-design.md](docs/pwa-design.md) for the PWA
 conversion, and [CHANGELOG.md](CHANGELOG.md) for release history.

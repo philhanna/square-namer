@@ -231,7 +231,7 @@ answering controls, in this order: `#sessionBtn`, `#pauseBtn`,
   flexible answer field lands in the middle of the row rather than off
   to one side.
 - A **voice input button** (`#voiceBtn`), feature-detected hidden by
-  default — full design in [voice-input.md](../voice-input.md); it's
+  default — full design in [voice-input.md](voice-input.md); it's
   listed here only for row layout, not duplicated.
 - A **⚙ settings button** (`#settingsBtn`) on the far right end of the
   row, opening the settings popup. Styled as a neutral square icon
@@ -418,7 +418,7 @@ or count paused wall-clock time as elapsed/answer time.
   mid-countdown, or after the session ends) — the same `disabled`-gating
   pattern used elsewhere (e.g. `#timeLimitInput` during a session).
 - Voice can also trigger pause/resume by saying "pause"/"resume" — see
-  [voice-input.md](../voice-input.md), which reuses `pauseBtn.click()`
+  [voice-input.md](voice-input.md), which reuses `pauseBtn.click()`
   rather than calling `pauseSession()`/`resumeSession()` directly.
 
 ### Slow threshold
