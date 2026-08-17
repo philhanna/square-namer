@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions are tracked as git tags (no `vN.N.N` prefix).
 
+## [2.1.0] - 2026-08-17
+
+### Added
+- PWA support: web app manifest, service worker, and install icons, plus
+  a favicon using the existing PWA icon.
+- Session summary table can now be sorted by any column.
+
+### Changed
+- Session summary now shows an accuracy percentage instead of raw
+  right/wrong counts, with the n-of-m detail moved onto the Accuracy
+  stat row and the redundant counts removed from the summary header.
+- Icon checkerboard now expands to fill the full canvas.
+
+### Fixed
+- PWA rendering tiny on mobile by adding a viewport meta tag.
+
 ## [2.0.1] - 2026-08-14
 
 ### Changed
