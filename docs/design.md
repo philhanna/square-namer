@@ -14,7 +14,7 @@ consistently slow or error-prone.
   Rush-style "3 strikes and you're out." A miss is a wrong guess *or*
   answering too slowly.
 - Enforce a **per-square time limit**: a configurable number of
-  milliseconds (default 1000) after the square is shown. Answering
+  milliseconds (default 5000) after the square is shown. Answering
   after the limit counts as a miss (a "timeout"), same as answering
   wrong — even if the guess would otherwise have been correct.
 - Record how long each square takes to answer, from the moment it's
