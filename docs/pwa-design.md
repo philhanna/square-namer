@@ -1,6 +1,7 @@
 # PWA Conversion — Design
 
-**Status: proposed, not yet implemented.**
+**Status: implemented in `index.html`/`manifest.webmanifest`/`sw.js`,
+matching this document.**
 
 ## Problem
 
@@ -42,7 +43,7 @@ installed one:
 
 ## Non-goals
 
-- **No offline voice input.** [voice-input.md](voice-input.md) already
+- **No offline voice input.** [voice-input.md](../voice-input.md) already
   documents that Web Speech API recognition (at least in Chrome) sends
   audio to a remote server — that's a browser-implementation constraint
   this project has no control over, PWA or not. Voice input continues to
@@ -141,8 +142,10 @@ piece glyph.
 ### `index.html` changes
 
 ```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1c1c1e">
+<link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -155,6 +158,17 @@ the same way (standalone launch, correct icon) as manifest-aware
 browsers. `apple-mobile-web-app-status-bar-style: black-translucent`
 lets the app's own dark background show through the iOS status bar
 area rather than leaving a mismatched default-gray bar across the top.
+
+The `viewport` meta tag was a follow-up fix discovered during
+implementation: without `width=device-width, initial-scale=1`, the
+standalone (installed) window rendered the whole page zoomed out to
+comically small on mobile — browsers assume a desktop-width viewport by
+default absent this tag, standalone mode included. `viewport-fit=cover`
+lets the app's background extend under any device notch/safe-area
+rather than leaving a strip of unstyled background there. The `<link
+rel="icon">` uses the same `icon-192.png` as the manifest/apple-touch
+icon, so the browser tab favicon matches the install icon instead of
+falling back to a generic globe/blank icon.
 
 ## Service worker (`sw.js`)
 
@@ -247,7 +261,7 @@ if ('serviceWorker' in window.navigator) {
   support (a shrinking but nonzero set) fall through to exactly today's
   behavior — plain network fetches, no offline capability, no install
   prompt. This mirrors the existing "degrade invisibly" principle
-  [voice-input.md](voice-input.md) already established for
+  [voice-input.md](../voice-input.md) already established for
   `SpeechRecognition` support.
 - Registered after `load`, not at the top of the script, so it doesn't
   compete with the app's own initial render for the main thread during

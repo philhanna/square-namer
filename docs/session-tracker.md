@@ -57,7 +57,7 @@ stats) to support answering those questions later.
   `localStorage`, full stop.
 - **No per-attempt input-device tracking.** Voice input fills the same
   `#answerInput` and submits through the same form path as typing (see
-  [voice-input.md](voice-input.md)) — there's no clean signal to label an
+  [voice-input.md](../voice-input.md)) — there's no clean signal to label an
   *individual* attempt as voice vs. typed without adding new plumbing to the
   hot submit path. Input device is tracked per **session** instead (see "Data
   model" below), which is enough resolution for "was I using voice this

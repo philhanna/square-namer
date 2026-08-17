@@ -1,21 +1,28 @@
 # Chess Square Namer
 
 A browser-based chess coordinate drill. A square lights up on the board and
-you type its name (e.g. `e4`) before time runs out. It's modeled on
-chess.com's Puzzle Rush: a 3-2-1 countdown before each session, a
+you type its name (e.g. `e4`) — or say it aloud — before time runs out. It's
+modeled on chess.com's Puzzle Rush: a 3-2-1 countdown before each session, a
 configurable per-square time limit, and "3 strikes and you're out" — the
 session ends after your third miss (a wrong guess or a timeout), whichever
-comes first. When a session ends, a summary shows your accuracy, average
-answer time, and your most/least difficult squares.
+comes first. A session can be paused and resumed without losing its timing.
+When a session ends, a summary shows your accuracy, average answer time, and
+your most/least difficult squares in a table sortable by any column — and
+every completed session is logged to `localStorage`, exportable as `.json`
+from the Settings panel, so you can track progress across sessions.
 
 It's a single-page app with no backend, no build step, and no external
 dependencies — just `index.html`, `sqname.css`, and `sqname.js`. It's also
 installable as a PWA (add it to your home screen / app dock) and works
-fully offline once loaded once, via `manifest.webmanifest` and `sw.js`.
+fully offline once loaded once, via `manifest.webmanifest` and `sw.js`
+(voice input still requires a network connection, since browser speech
+recognition is cloud-based).
 
-See [design.md](design.md) for the full design rationale and implementation
-notes, [docs/pwa-design.md](docs/pwa-design.md) for the PWA conversion, and
-[CHANGELOG.md](CHANGELOG.md) for release history.
+See [docs/design.md](docs/design.md) for the full design rationale and
+implementation notes, [voice-input.md](voice-input.md) for the voice input
+feature, [docs/session-tracker.md](docs/session-tracker.md) for the
+persistent session log, [docs/pwa-design.md](docs/pwa-design.md) for the PWA
+conversion, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Credits
 

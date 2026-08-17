@@ -34,13 +34,20 @@ consistently slow or error-prone.
 ## Non-goals
 
 - Persisting sessions across page reloads (no localStorage/backend) —
-  can be a later iteration.
+  can be a later iteration. *(Later addressed by
+  [session-tracker.md](session-tracker.md)'s `localStorage`-backed
+  session log — this doc's own `session` object is still purely
+  in-memory and still discarded on reload/new-session; the log is a
+  separate, append-only record built from it at `endSession()` time.)*
 - Aggregating difficulty trends across multiple sessions.
 - Configurable session length/goals (e.g. "50 squares" or "5 minutes").
 - Configurable strike limit — "3 strikes" is fixed, matching the
   Puzzle Rush convention this is modeled on.
 - An accuracy **percentage**. Right/wrong counts are shown live and in
-  the summary, but they're raw counts, not a derived rate.
+  the summary, but they're raw counts, not a derived rate. *(Revised
+  later, for the summary only — see "Decisions" below and the Accuracy
+  row under "Statistics table"; the live `#statRight`/`#statWrong`
+  counters stay raw counts.)*
 - A user-configurable slow-answer threshold — it's a fixed constant,
   separate from the (configurable) time limit. The slow threshold only
   flags a square as sluggish in the summary table; the time limit
@@ -208,18 +215,24 @@ into a separate popup to cut clutter from the main view — see
 "Settings popup" below.
 
 **`#topRow`, directly above the board** — the moment-to-moment
-answering controls, in this order:
+answering controls, in this order: `#sessionBtn`, `#pauseBtn`,
+`#answerForm`, `#sessionTimer`, `#voiceBtn`, `#settingsBtn`.
 
 - **Start/Stop button** (`#sessionBtn`) — single toggle button. Label
   switches between "Start" and "Stop". Sits on the left end of the row.
+- **Pause/Resume button** (`#pauseBtn`) — an icon toggle right next to
+  Start/Stop, disabled whenever no session is running (idle,
+  mid-countdown, or after the session ends). See "Pause/Resume" below.
 - `#answerForm`, containing only `#answerInput`, given `flex: 1` so it
-  fills the remaining width and sits visually centered between the
-  Start/Stop button and the session timer.
+  fills the remaining width and sits visually centered in the row.
 - A small **session timer** (`#sessionTimer`) showing elapsed
   wall-clock time, updated once per second while running. Placed after
   `#answerForm` in the markup (not right after the button) so the
   flexible answer field lands in the middle of the row rather than off
   to one side.
+- A **voice input button** (`#voiceBtn`), feature-detected hidden by
+  default — full design in [voice-input.md](../voice-input.md); it's
+  listed here only for row layout, not duplicated.
 - A **⚙ settings button** (`#settingsBtn`) on the far right end of the
   row, opening the settings popup. Styled as a neutral square icon
   button (dark gray, not the primary yellow), distinct from the
@@ -372,6 +385,42 @@ was correctly getting the full configured limit. That pause is a UX
 fix, not a timing fix: it doesn't shorten the first square's own time
 limit, it just delays when that limit starts counting.
 
+### Pause/Resume
+
+`#pauseBtn` freezes every session timer — the per-square timeout and the
+session clock — without discarding any in-progress state, so a break
+mid-drill can't silently burn down the current square's remaining time
+or count paused wall-clock time as elapsed/answer time.
+
+- Timeouts that need to survive a pause (the per-square deadline, the
+  post-answer/post-miss delays, the summary pop-up delay) are created via
+  `pausableSetTimeout(callback, delayMs)` instead of the raw
+  `setTimeout`, and tracked in a module-level `activePausableTimeouts`
+  set. `pauseAllTimeouts()` clears each one's underlying `setTimeout` and
+  records how much delay was left (`remaining`); `resumeAllTimeouts()`
+  reschedules each with that leftover delay.
+- `pauseSession()`: guarded by `if (!session || session.endedAt ||
+  paused) return;`. Records `pauseStartedAt`, stops the session-clock
+  interval, calls `pauseAllTimeouts()`, disables `#answerInput`, and
+  swaps `#pauseBtn`'s icon/label to a Resume state (`.paused` class).
+- `resumeSession()`: shifts `session.startedAt` and `targetShownAt`
+  forward by the paused duration (`Date.now() - pauseStartedAt`) — this
+  is what keeps paused time out of both the session timer and the
+  current square's `elapsedMs`, rather than tracking pause spans as a
+  separate field. Then calls `resumeAllTimeouts()`, restarts the
+  session-clock interval, re-enables `#answerInput`, and swaps the
+  button back to its Pause state.
+- `endSession()` also resolves an in-progress pause first (folding the
+  paused duration into `session.startedAt` the same way `resumeSession()`
+  does) so a session stopped while paused still reports accurate
+  duration/timing, and resets the button's visual state.
+- `#pauseBtn` is disabled whenever no session is running (idle,
+  mid-countdown, or after the session ends) — the same `disabled`-gating
+  pattern used elsewhere (e.g. `#timeLimitInput` during a session).
+- Voice can also trigger pause/resume by saying "pause"/"resume" — see
+  [voice-input.md](../voice-input.md), which reuses `pauseBtn.click()`
+  rather than calling `pauseSession()`/`resumeSession()` directly.
+
 ### Slow threshold
 
 A fixed **`SLOW_THRESHOLD_MS`** constant (500ms), declared at the top
@@ -389,28 +438,33 @@ to register before the view is covered. The card is dismissed by its
 **Close** button or by clicking the backdrop outside it; both just
 hide the overlay, they don't affect session data.
 
-- Header line (`#summaryHeader`): total duration, right count, wrong
-  count, and how it ended (`struck out` once 3 misses accumulate,
-  otherwise `stopped manually`) — e.g.
-  `0m 42s · 12 right · 3 wrong · struck out`. If there were any
-  misses, a second line lists each one via `describeMiss()` — e.g.
-  `h6 (typed g5), b3 (timed out), e4 (typed d4)`.
+- Header line (`#summaryHeader`): total duration and how it ended
+  (`struck out` once 3 misses accumulate, otherwise `stopped
+  manually`) — e.g. `0m 42s · struck out`. Right/wrong counts are not
+  repeated here — they're already the live `#statRight`/`#statWrong`
+  counters the player watched during the session, and the Accuracy row
+  below folds them into one number. If there were any misses, a second
+  line lists each one via `describeMiss()` — e.g. `h6 (typed g5), b3
+  (timed out), e4 (typed d4)`.
 - **Summary stats** (`#summaryStats`), a tabular label/value block
   between the header and the table — a CSS grid
   (`grid-template-columns: max-content 1fr`), one `<div class="statLabel">`
   + `<div class="statValue">` pair per row via a small `statRow(label,
   value)` helper, so every value starts at the same x position
   regardless of label length:
-  - **Accuracy** (always shown, first row): `attempts.length /
-    (attempts.length + misses.length)`, rounded to a whole percent —
-    e.g. `63%`. Shows `—` instead of `NaN%` if literally nothing was
-    answered or missed (Stop clicked the instant a session starts, before
-    the first square is even attempted). This is the one place in the
-    UI that shows an accuracy percentage — the live right/wrong counts
-    during play (see "Live right/wrong counts" above) remain raw counts
-    by design; a post-session summary stat is a different context than
-    a live in-the-moment readout, so showing a computed rate here
-    doesn't conflict with that.
+  - **Accuracy** (always shown, first row): `<correct> of <total>
+    (<pct>%)` — e.g. `12 of 15 (80%)`, where `total =
+    attempts.length + misses.length` and `pct` is that ratio rounded to
+    a whole percent. Shows `—` instead of `0 of 0 (NaN%)` if literally
+    nothing was answered or missed (Stop clicked the instant a session
+    starts, before the first square is even attempted). This is the one
+    place in the UI that shows an accuracy percentage — the live
+    right/wrong counts during play (see "Live right/wrong counts"
+    above) remain raw counts by design; a post-session summary stat is
+    a different context than a live in-the-moment readout, so showing a
+    computed rate here doesn't conflict with that. The `<n> of <m>`
+    detail lives on this row rather than in the header, replacing the
+    separate right/wrong counts the header used to show.
   - The remaining three rows only appear if `rows.length` (see the
     table below) is non-zero — no correct answers means nothing to
     compute an average/most/least-difficult from:
@@ -419,13 +473,17 @@ hide the overlay, they don't affect session data.
       weighted by how many times each square happened to reappear. A
       square answered once and a square answered five times count
       equally toward this average.
-    - **Most difficult**: the first 3 entries of `rows` (already
-      sorted worst-first) — the 3 squares with the highest `avgMs`.
+    - **Most difficult**: the first 3 entries of a descending copy
+      (`[...rows].sort((a, b) => b.avgMs - a.avgMs)`) — the 3 squares
+      with the highest `avgMs`.
     - **Least difficult**: the first 3 entries of a separate ascending
       copy (`[...rows].sort((a, b) => a.avgMs - b.avgMs)`) — the 3
-      squares with the lowest `avgMs`. A fresh sorted copy rather than
-      `rows.slice(-3).reverse()`, so it isn't silently dependent on
-      `rows`'s sort order staying what it currently is.
+      squares with the lowest `avgMs`. Both are their own freshly
+      sorted copies of `rows` rather than one being derived from the
+      other (e.g. `rows.slice(-3).reverse()`), so neither is silently
+      dependent on `rows`'s own order — which, since the table became
+      sortable by any column, is just insertion order and not
+      meaningfully sorted at all.
     - Both lists are rendered via `formatSquareList(rows)` as a plain
       comma-separated list of square names — no per-square timing in
       this line, since the table immediately below already shows each
@@ -438,18 +496,28 @@ hide the overlay, they don't affect session data.
   **Slowest** — computed from `session.attempts` only (correct,
   within-time-limit answers). No Accuracy column here (that's the
   `#summaryStats` row above, not a per-square breakdown), no miss rows.
-- Rows sorted worst-first by `avgMs` (slowest average first).
+- **Sortable by any column**: each `<th>` carries a `data-sort` key
+  (`square`/`count`/`avgMs`/`maxMs`); clicking one sorts `summaryRows`
+  by that key via `renderSummaryRows()`, and clicking the
+  already-active column again flips direction instead of re-sorting by
+  something else. Module-level `summarySortKey`/`summarySortDir` persist
+  across re-renders within a session (e.g. re-sorting after a session
+  ends still reflects whatever was last clicked). Defaults to `avgMs`
+  descending (slowest first) on a fresh page load — switching to a new
+  column defaults to descending too, except `square`, which defaults to
+  ascending (a-h reads naturally that way). The active column/direction
+  is shown via `.sort-asc`/`.sort-desc` classes on its `<th>`.
 - Row highlighting (`.slow` class) for squares whose `avgMs` exceeds
-  `SLOW_THRESHOLD_MS`.
+  `SLOW_THRESHOLD_MS`, independent of sort order.
 - Starting a new session before the 500ms popup timer has fired (e.g.
   Stop → immediately Start again) cancels the pending pop-up — it must
   not appear mid-way through the next session.
 
 ```
-Session: 0m 42s · 12 right · 3 wrong · struck out
+Session: 0m 42s · struck out
 h6 (typed g5), b3 (timed out), e4 (typed d4)
 
-Accuracy         80%
+Accuracy         12 of 15 (80%)
 Average time     0.9s
 Most difficult   f7, b2, a1
 Least difficult  a1, b2, f7
@@ -549,7 +617,12 @@ Least difficult  a1, b2, f7
   `setTimeout(..., SUMMARY_POPUP_DELAY_MS)`, storing the timeout id in
   `summaryPopupTimeout`. Guarded by
   `if (!session || session.endedAt) return;` so it's safe to call
-  twice (e.g. Stop clicked during the post-miss delay).
+  twice (e.g. Stop clicked during the post-miss delay). It also calls
+  `logSession(session)` right after `renderSummary()`, appending the
+  completed session to the persistent `localStorage` log — see
+  [session-tracker.md](session-tracker.md) for that storage layer; it
+  reuses `renderSummary()`'s own `summaryRows` for its per-square data
+  rather than recomputing them.
 - `startSession()` calls `clearTimeout(summaryPopupTimeout)` and hides
   `#summaryOverlay` up front, so a popup queued by a just-ended session
   can never appear after a new one has started.
