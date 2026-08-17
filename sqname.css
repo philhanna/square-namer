@@ -414,6 +414,24 @@ button:disabled {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+#summaryTable th:hover {
+  color: var(--text);
+}
+#summaryTable th::after {
+  content: '';
+  display: inline-block;
+  width: 0.8em;
+  margin-left: 2px;
+}
+#summaryTable th.sort-asc::after {
+  content: '▲';
+}
+#summaryTable th.sort-desc::after {
+  content: '▼';
 }
 #summaryTable tbody tr.slow {
   color: var(--wrong);

@@ -53,6 +53,7 @@ const summaryOverlayEl = document.getElementById('summaryOverlay');
 const summaryHeaderEl = document.getElementById('summaryHeader');
 const summaryStatsEl = document.getElementById('summaryStats');
 const summaryBodyEl = document.getElementById('summaryBody');
+const summaryHeaderCells = document.querySelectorAll('#summaryTable thead th[data-sort]');
 const summaryCloseBtn = document.getElementById('summaryCloseBtn');
 const countdownOverlayEl = document.getElementById('countdownOverlay');
 const rankLabelsEl = document.getElementById('rankLabels');
@@ -74,6 +75,9 @@ let targetShownAt = null;
 let session = null;        // { startedAt, endedAt, attempts: [], misses: [] } while running, or after it ends
 let timerInterval = null;
 let summaryPopupTimeout = null;
+let summaryRows = [];
+let summarySortKey = 'avgMs';
+let summarySortDir = 'desc';
 let answerTimeout = null;
 let timeLimitMs = DEFAULT_TIME_LIMIT_MS;
 let lastRanks = null;      // ranks/fileOrder from the most recent buildBoard(), for
@@ -413,8 +417,6 @@ function renderSummary() {
     };
   });
 
-  rows.sort((a, b) => b.avgMs - a.avgMs);
-
   const totalAnswered = attempts.length + misses.length;
   const accuracyText = totalAnswered
     ? `${attempts.length} of ${totalAnswered} (${Math.round((attempts.length / totalAnswered) * 100)}%)`
@@ -425,7 +427,7 @@ function renderSummary() {
   if (rows.length) {
     const overallAvgMs = rows.reduce((sum, r) => sum + r.avgMs, 0) / rows.length;
     const bySpeed = [...rows].sort((a, b) => a.avgMs - b.avgMs);
-    const mostDifficult = rows.slice(0, 3);
+    const mostDifficult = [...rows].sort((a, b) => b.avgMs - a.avgMs).slice(0, 3);
     const leastDifficult = bySpeed.slice(0, 3);
 
     statsHtml += statRow('Average time', formatMs(overallAvgMs));
@@ -435,8 +437,25 @@ function renderSummary() {
 
   summaryStatsEl.innerHTML = statsHtml;
 
+  summaryRows = rows;
+  renderSummaryRows();
+}
+
+function renderSummaryRows() {
+  const key = summarySortKey;
+  const dir = summarySortDir === 'asc' ? 1 : -1;
+  const sorted = [...summaryRows].sort((a, b) => {
+    if (key === 'square') return a.square.localeCompare(b.square) * dir;
+    return (a[key] - b[key]) * dir;
+  });
+
+  summaryHeaderCells.forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === key) th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+
   summaryBodyEl.innerHTML = '';
-  rows.forEach(row => {
+  sorted.forEach(row => {
     const tr = document.createElement('tr');
     if (row.avgMs > SLOW_THRESHOLD_MS) tr.classList.add('slow');
     tr.innerHTML = `
@@ -448,6 +467,19 @@ function renderSummary() {
     summaryBodyEl.appendChild(tr);
   });
 }
+
+summaryHeaderCells.forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (summarySortKey === key) {
+      summarySortDir = summarySortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      summarySortKey = key;
+      summarySortDir = key === 'square' ? 'asc' : 'desc';
+    }
+    renderSummaryRows();
+  });
+});
 
 answerForm.addEventListener('submit', (e) => {
   e.preventDefault();
