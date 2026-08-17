@@ -25,7 +25,7 @@ stats) to support answering those questions later.
   no extra step by the user.
 - Each entry is self-contained: timestamp, the settings in effect for that
   session (time limit, orientation, coordinate labels), which input device(s)
-  were used, and the complete stats (accuracy, misses, per-square
+  were used (i.e., keyboard or voice), and the complete stats (accuracy, misses, per-square
   count/avg/max) — enough to reconstruct everything the on-screen summary
   pop-up shows, without needing the original `session` object.
 - Log data survives page reloads, browser restarts, and (for an installed
