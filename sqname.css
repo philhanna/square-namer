@@ -354,6 +354,25 @@ button:disabled {
   color: var(--text);
   cursor: pointer;
 }
+#settingsPanel #sessionLog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#settingsPanel .sessionLogTitle {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+#settingsPanel .sessionLogActions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+#settingsPanel .sessionLogActions button {
+  flex: 1;
+}
 #settingsCloseBtn {
   width: 100%;
 }

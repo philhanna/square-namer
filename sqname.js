@@ -6,6 +6,9 @@ const STRIKE_LIMIT = 3;
 const COUNTDOWN_START = 3;
 const COUNTDOWN_STEP_MS = 1000;
 const POST_COUNTDOWN_DELAY_MS = 350;
+const SESSION_LOG_KEY = 'sqname.sessionLog';
+const SESSION_LOG_SCHEMA_VERSION = 1;
+const MAX_LOG_ENTRIES = 1000;
 
 const files = ['a','b','c','d','e','f','g','h'];
 
@@ -62,6 +65,8 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsOverlayEl = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const showCoordinatesInput = document.getElementById('showCoordinates');
+const exportLogBtn = document.getElementById('exportLogBtn');
+const clearLogBtn = document.getElementById('clearLogBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const voiceBtn = document.getElementById('voiceBtn');
 
@@ -212,6 +217,7 @@ function updateLiveCounts() {
 }
 
 function registerMiss(square, guess, elapsedMs) {
+  if (voiceActive) session.usedVoice = true; else session.usedKeyboard = true;
   session.misses.push({ square, guess, elapsedMs });
   flashResult(false);
   updateLiveCounts();
@@ -272,7 +278,15 @@ function runCountdownStep(n) {
 }
 
 function startSession() {
-  session = { startedAt: Date.now(), endedAt: null, attempts: [], misses: [] };
+  session = {
+    startedAt: Date.now(), endedAt: null, attempts: [], misses: [],
+    usedKeyboard: false, usedVoice: false,
+    settings: {
+      timeLimitMs,
+      orientation: flipped ? 'black' : 'white',
+      showCoordinates: showCoordinatesInput.checked,
+    },
+  };
   updateLiveCounts();
 
   answerInput.disabled = false;
@@ -343,6 +357,8 @@ function endSession() {
   if (!voiceActive) answerInput.focus();
 
   renderSummary();
+  logSession(session);
+  updateSessionLogButtons();
   summaryPopupTimeout = setTimeout(() => {
     summaryOverlayEl.hidden = false;
   }, SUMMARY_POPUP_DELAY_MS);
@@ -481,6 +497,84 @@ summaryHeaderCells.forEach(th => {
   });
 });
 
+function loadSessionLog() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SESSION_LOG_KEY));
+    if (raw && raw.schemaVersion === SESSION_LOG_SCHEMA_VERSION && Array.isArray(raw.entries)) {
+      return raw;
+    }
+  } catch {
+    // fall through to a fresh log
+  }
+  return { schemaVersion: SESSION_LOG_SCHEMA_VERSION, entries: [] };
+}
+
+function saveSessionLog(log) {
+  log.entries = log.entries.slice(-MAX_LOG_ENTRIES);
+  try {
+    localStorage.setItem(SESSION_LOG_KEY, JSON.stringify(log));
+  } catch {
+    // quota exceeded or storage disabled (private browsing, etc.) — the
+    // session itself already ran and its on-screen summary already
+    // rendered; losing the log entry isn't worth surfacing as an error.
+  }
+}
+
+function buildLogEntry(s) {
+  const correct = s.attempts.length;
+  const missed = s.misses.length;
+  const total = correct + missed;
+  const inputDevice = (s.usedKeyboard && s.usedVoice) ? 'mixed' : s.usedVoice ? 'voice' : 'keyboard';
+
+  return {
+    timestamp: s.endedAt,
+    durationMs: s.endedAt - s.startedAt,
+    endedBy: missed >= STRIKE_LIMIT ? 'struck out' : 'stopped manually',
+    settings: s.settings,
+    inputDevice,
+    stats: {
+      correct,
+      missed,
+      accuracy: total ? correct / total : null,
+      misses: s.misses.map(m => ({ square: m.square, guess: m.guess, elapsedMs: m.elapsedMs })),
+      perSquare: summaryRows,
+    },
+  };
+}
+
+function logSession(s) {
+  if (s.attempts.length === 0 && s.misses.length === 0) return;
+  const log = loadSessionLog();
+  log.entries.push(buildLogEntry(s));
+  saveSessionLog(log);
+}
+
+function updateSessionLogButtons() {
+  const empty = loadSessionLog().entries.length === 0;
+  exportLogBtn.disabled = empty;
+  clearLogBtn.disabled = empty;
+}
+
+function exportSessionLog() {
+  const log = loadSessionLog();
+  const blob = new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sqname-session-log-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearSessionLog() {
+  if (!confirm("Clear all saved session history? This can't be undone.")) return;
+  localStorage.removeItem(SESSION_LOG_KEY);
+  updateSessionLogButtons();
+}
+
+exportLogBtn.addEventListener('click', exportSessionLog);
+clearLogBtn.addEventListener('click', clearSessionLog);
+
 answerForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -506,6 +600,7 @@ answerForm.addEventListener('submit', (e) => {
   const isCorrect = guess === target;
 
   if (isCorrect) {
+    if (voiceActive) session.usedVoice = true; else session.usedKeyboard = true;
     session.attempts.push({ square: target, shownAt: targetShownAt, answeredAt, elapsedMs });
     feedbackEl.textContent = 'Correct — ' + target;
     feedbackEl.className = 'correct';
@@ -706,4 +801,5 @@ if (voiceSupported) {
 // init — idle until Start is pressed
 buildBoard();
 updateLiveCounts();
+updateSessionLogButtons();
 answerInput.focus();

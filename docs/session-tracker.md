@@ -1,6 +1,7 @@
 # Session Log — Design
 
-**Status: proposed, not yet implemented.**
+**Status: implemented in `sqname.js`/`index.html`/`sqname.css`, matching
+this document.**
 
 ## Problem
 
@@ -229,8 +230,10 @@ function logSession(session) {
   practice — reading at start just matches where `timeLimitMs` is already
   captured today (`beginCountdown()`), rather than introducing a second read
   site.
-- **Export button** lives in the Settings panel (`#settingsOverlay`), next to
-  the existing toggles — e.g. "Export session log". Handler:
+- **Export and Clear buttons** live together in a labeled "Session Log"
+  group (`#sessionLog`) in the Settings panel (`#settingsOverlay`), next to
+  the existing toggles, styled like the "Board orientation" group. Export
+  handler:
   ```js
   function exportSessionLog() {
     const log = loadSessionLog();
@@ -243,8 +246,13 @@ function logSession(session) {
     URL.revokeObjectURL(url);
   }
   ```
-  Disabled (or hidden) when the log is empty, matching the existing pattern
-  of `pauseBtn` being `disabled` when there's no session to pause.
+  Both buttons are disabled when the log is empty, matching the existing
+  pattern of `pauseBtn` being `disabled` when there's no session to pause.
+- **Clear button** wipes `localStorage.removeItem(SESSION_LOG_KEY)` after a
+  native `confirm()` prompt, since it's the one destructive, unrecoverable
+  action in this document (unlike export, which only reads) and deserves a
+  guard even though the app has no other confirm-before-destroy precedent
+  to mirror.
 
 ## Testing
 
